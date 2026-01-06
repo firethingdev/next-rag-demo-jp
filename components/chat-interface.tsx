@@ -1,12 +1,13 @@
 'use client';
 
-import { useChat, type Message } from '@ai-sdk/react';
-import { useEffect, useRef } from 'react';
+import { useChat } from '@ai-sdk/react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, MessageSquare } from 'lucide-react';
+import { DefaultChatTransport } from 'ai';
 
 interface ChatInterfaceProps {
   chatId: string | null;
@@ -14,12 +15,16 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ chatId }: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState('');
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
-    useChat({
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({
       api: chatId ? `/api/chats/${chatId}/messages` : undefined,
-      id: chatId || undefined,
-    });
+    }),
+    id: chatId || undefined,
+  });
+
+  const isLoading = status === 'streaming' || status === 'submitted';
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -51,7 +56,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
               <p>Start a conversation by sending a message below</p>
             </div>
           ) : (
-            messages.map((message: Message) => (
+            messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex gap-3 ${
@@ -71,9 +76,18 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
                       : 'bg-muted'
                   }`}
                 >
-                  <p className='text-sm whitespace-pre-wrap'>
-                    {message.content}
-                  </p>
+                  <div className='text-sm whitespace-pre-wrap'>
+                    {message.parts.map((part, i) => {
+                      switch (part.type) {
+                        case 'text':
+                          return (
+                            <div key={`${message.id}-${i}`}>{part.text}</div>
+                          );
+                        default:
+                          return null;
+                      }
+                    })}
+                  </div>
                 </Card>
 
                 {message.role === 'user' && (
@@ -99,50 +113,44 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
       </ScrollArea>
 
       <div className='border-t p-4 bg-background'>
-        <form onSubmit={handleSubmit} className='max-w-3xl mx-auto'>
-          <div className='flex gap-2'>
-            <Textarea
-              value={input}
-              onChange={handleInputChange}
-              placeholder='Type your message...'
-              className='resize-none'
-              rows={3}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(
-                    e as unknown as React.FormEvent<HTMLFormElement>,
-                  );
-                }
-              }}
-            />
-            <Button
-              type='submit'
-              size='icon'
-              disabled={isLoading || !input.trim()}
-            >
-              <Send className='w-4 h-4' />
-            </Button>
-          </div>
-        </form>
+        <div className='max-w-3xl mx-auto'>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (input.trim()) {
+                sendMessage({ text: input });
+                setInput('');
+              }
+            }}
+          >
+            <div className='flex gap-2'>
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder='Type your message...'
+                className='resize-none'
+                rows={3}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (input.trim()) {
+                      sendMessage({ text: input });
+                      setInput('');
+                    }
+                  }
+                }}
+              />
+              <Button
+                type='submit'
+                size='icon'
+                disabled={isLoading || !input?.trim()}
+              >
+                <Send className='w-4 h-4' />
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-  );
-}
-
-function MessageSquare({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns='http://www.w3.org/2000/svg'
-      viewBox='0 0 24 24'
-      fill='none'
-      stroke='currentColor'
-      strokeWidth='2'
-      strokeLinecap='round'
-      strokeLinejoin='round'
-      className={className}
-    >
-      <path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' />
-    </svg>
   );
 }

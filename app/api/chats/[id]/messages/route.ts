@@ -1,7 +1,6 @@
-import { streamText } from 'ai';
+import { streamText, UIMessage } from 'ai';
 import { aiModel } from '@/lib/ai-config';
 import prisma from '@/lib/prisma';
-import { searchSimilarChunks, formatContextForLLM } from '@/lib/vector-store';
 
 export const maxDuration = 30;
 
@@ -11,67 +10,49 @@ export async function POST(
 ) {
   try {
     const { id: chatId } = await params;
-    const { messages } = await request.json();
 
-    // Get the latest user message
+    // Extract messages from the request
+    const { messages }: { messages: UIMessage[] } = await request.json();
+
+    console.log('=== MESSAGES COUNT ===', messages.length);
+
+    if (messages.length === 0) {
+      console.error('No messages in request');
+      return new Response(JSON.stringify({ error: 'No messages provided' }), {
+        status: 400,
+      });
+    }
+
+    // Get the latest message
     const latestMessage = messages[messages.length - 1];
+    console.log('=== LATEST MESSAGE ===');
+    console.log(JSON.stringify(latestMessage, null, 2));
 
-    // Search for relevant context using RAG
-    const relevantChunks = await searchSimilarChunks(
-      latestMessage.content,
-      chatId,
-    );
+    // Simple conversion - just use content directly
+    const simpleMessages = messages.map((msg: UIMessage) => ({
+      role: msg.role,
+      content: msg.parts
+        .map((part) => (part.type === 'text' ? part.text : ''))
+        .join(''),
+    }));
 
-    // Format context for the LLM
-    const context = await formatContextForLLM(relevantChunks);
+    console.log('=== SIMPLE MESSAGES FOR MODEL ===');
+    console.log(JSON.stringify(simpleMessages, null, 2));
 
-    // Prepare messages with context
-    const messagesWithContext = context
-      ? [
-          {
-            role: 'system' as const,
-            content: context,
-          },
-          ...messages,
-        ]
-      : messages;
-
-    // Stream the response
+    // Stream the response with minimal config (like the test)
     const result = streamText({
       model: aiModel,
-      messages: messagesWithContext,
-      async onFinish({ text }) {
-        // Save user message
-        await prisma.message.create({
-          data: {
-            chatId,
-            role: 'user',
-            content: latestMessage.content,
-          },
-        });
-
-        // Save assistant message
-        await prisma.message.create({
-          data: {
-            chatId,
-            role: 'assistant',
-            content: text,
-          },
-        });
-
-        // Update chat timestamp
-        await prisma.chat.update({
-          where: { id: chatId },
-          data: { updatedAt: new Date() },
-        });
-      },
+      messages: simpleMessages,
     });
 
-    return result.toTextStreamResponse();
+    return result.toUIMessageStreamResponse();
   } catch (error) {
-    console.error('Error in chat completion:', error);
+    console.error('=== ERROR ===', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to process message' }),
+      JSON.stringify({
+        error: 'Failed to process message',
+        details: error instanceof Error ? error.message : String(error),
+      }),
       { status: 500 },
     );
   }
