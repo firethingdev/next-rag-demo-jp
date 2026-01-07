@@ -1,12 +1,15 @@
-import { streamText, UIMessage } from 'ai';
+import { toBaseMessages, toUIMessageStream } from '@ai-sdk/langchain';
+import { createUIMessageStreamResponse, UIMessage } from 'ai';
 import { aiModel } from '@/lib/ai-config';
+import { searchSimilarChunks, formatContextForLLM } from '@/lib/vector-store';
+import { SystemMessage } from '@langchain/core/messages';
 
 export const maxDuration = 30;
 
 export async function POST(request: Request) {
   try {
     // Extract messages and chatId from the request
-    const { messages, chatId }: { messages: UIMessage[]; chatId?: string } =
+    const { messages, id: chatId }: { messages: UIMessage[]; id?: string } =
       await request.json();
 
     console.log('=== MESSAGES COUNT ===', messages.length);
@@ -19,29 +22,36 @@ export async function POST(request: Request) {
       });
     }
 
-    // Get the latest message
-    const latestMessage = messages[messages.length - 1];
-    console.log('=== LATEST MESSAGE ===');
-    console.log(JSON.stringify(latestMessage, null, 2));
+    // Convert AI SDK UIMessages to LangChain messages
+    const langchainMessages = await toBaseMessages(messages);
 
-    // Simple conversion - just use content directly
-    const simpleMessages = messages.map((msg: UIMessage) => ({
-      role: msg.role,
-      content: msg.parts
-        .map((part) => (part.type === 'text' ? part.text : ''))
-        .join(''),
-    }));
+    // If we have a chatId (or it's a general query), perform RAG if needed
+    // Usually we use the last message as the query
+    const lastMessage = messages[messages.length - 1];
+    const query = lastMessage.parts
+      .filter((p) => p.type === 'text')
+      .map((p) => (p as { text: string }).text)
+      .join(' ');
 
-    console.log('=== SIMPLE MESSAGES FOR MODEL ===');
-    console.log(JSON.stringify(simpleMessages, null, 2));
+    if (query && chatId) {
+      console.log('=== PERFORMING RAG SEARCH ===');
+      const similarChunks = await searchSimilarChunks(query, chatId);
+      const context = await formatContextForLLM(similarChunks);
 
-    // Stream the response with minimal config (like the test)
-    const result = streamText({
-      model: aiModel,
-      messages: simpleMessages,
+      if (context) {
+        console.log('=== CONTEXT RETRIEVED ===');
+        // Prepend system message with context
+        langchainMessages.unshift(new SystemMessage(context));
+      }
+    }
+
+    // Stream the response from the model
+    const stream = await aiModel.stream(langchainMessages);
+
+    // Convert the LangChain stream to UI message stream and return response
+    return createUIMessageStreamResponse({
+      stream: toUIMessageStream(stream),
     });
-
-    return result.toUIMessageStreamResponse();
   } catch (error) {
     console.error('=== ERROR ===', error);
     return new Response(

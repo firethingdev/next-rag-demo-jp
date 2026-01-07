@@ -227,7 +227,7 @@ function DocumentItem({
   return (
     <Card className='p-2'>
       <div className='flex items-start gap-2'>
-        <File className='w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5' />
+        <File className='w-4 h-4 text-muted-foreground shrink-0 mt-0.5' />
         <div className='flex-1 min-w-0'>
           <p className='text-xs font-medium truncate'>{document.filename}</p>
           <div className='flex items-center gap-2 mt-1'>
@@ -244,7 +244,7 @@ function DocumentItem({
         <Button
           variant='ghost'
           size='icon'
-          className='h-6 w-6 flex-shrink-0'
+          className='h-6 w-6 shrink-0'
           onClick={() => onDelete(document.id)}
         >
           <Trash2 className='w-3 h-3' />

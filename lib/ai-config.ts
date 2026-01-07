@@ -1,16 +1,32 @@
-import { google } from '@ai-sdk/google';
+import { ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai';
 
-export const aiModel = google('gemini-2.0-flash-exp', {
-  // Optional: Configure via Vercel AI Gateway
-  // baseURL: process.env.VERCEL_AI_GATEWAY_URL,
+const gatewayApiKey = process.env.AI_GATEWAY_API_KEY;
+const gatewayBaseURL = 'https://ai-gateway.vercel.sh/v1';
+
+export const aiModel = new ChatOpenAI({
+  apiKey: gatewayApiKey,
+  modelName: 'openai/gpt-5', // Or any model supported by your gateway
+  temperature: 0.7,
+  configuration: {
+    baseURL: gatewayBaseURL,
+  },
 });
 
-export const embeddingModel = 'text-embedding-004';
+export const embeddings = new OpenAIEmbeddings({
+  apiKey: gatewayApiKey,
+  modelName: 'openai/text-embedding-3-small',
+  dimensions: 768, // Match the vector(768) in schema.prisma
+  configuration: {
+    baseURL: gatewayBaseURL,
+  },
+});
+
+export const embeddingModel = 'openai/text-embedding-3-small';
 
 export const AI_CONFIG = {
-  chatModel: 'gemini-2.0-flash-exp',
-  embeddingModel: 'text-embedding-004',
-  embeddingDimensions: 768,
+  chatModel: 'openai/gpt-5',
+  embeddingModel: 'openai/text-embedding-3-small',
+  embeddingDimensions: 768, // Match existing schema
   maxTokens: 8192,
   temperature: 0.7,
   topK: 5, // Number of relevant chunks to retrieve for RAG

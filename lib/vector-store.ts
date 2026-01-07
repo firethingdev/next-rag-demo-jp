@@ -1,17 +1,12 @@
-import { google } from '@ai-sdk/google';
-import { embed } from 'ai';
 import prisma from '@/lib/prisma';
-import { AI_CONFIG } from '@/lib/ai-config';
+import { AI_CONFIG, embeddings } from '@/lib/ai-config';
+import crypto from 'crypto';
 
 /**
- * Generate embeddings for a given text using Google's text-embedding-004 model
+ * Generate embeddings for a given text using LangChain OpenAI embeddings via AI Gateway
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const { embedding } = await embed({
-    model: google.textEmbeddingModel('text-embedding-004'),
-    value: text,
-  });
-
+  const embedding = await embeddings.embedQuery(text);
   return embedding;
 }
 
@@ -37,22 +32,25 @@ export async function storeEmbeddings(
     }),
   );
 
-  // Store all embeddings in the database
-  await prisma.$executeRaw`
-    INSERT INTO embeddings (id, document_id, chunk_text, chunk_index, embedding, created_at)
-    VALUES ${embeddingsData
-      .map(
-        (data) => `(
-        gen_random_uuid()::text,
-        ${data.documentId}::text,
-        ${data.chunkText}::text,
-        ${data.chunkIndex}::int,
-        ${data.embedding}::vector,
-        NOW()
-      )`,
-      )
-      .join(', ')}
-  `;
+  // Store all embeddings in the database using $executeRawUnsafe for batch insert
+  // We use this because $executeRaw with template literals doesn't support dynamic VALUES clauses
+  const values = embeddingsData
+    .map(
+      (data) => `(
+      '${crypto.randomUUID()}',
+      '${data.documentId.replace(/'/g, "''")}',
+      '${data.chunkText.replace(/'/g, "''")}',
+      ${data.chunkIndex},
+      '${data.embedding}'::vector,
+      NOW()
+    )`,
+    )
+    .join(', ');
+
+  await prisma.$executeRawUnsafe(`
+    INSERT INTO embeddings (id, "documentId", "chunkText", "chunkIndex", embedding, "createdAt")
+    VALUES ${values}
+  `);
 }
 
 /**
@@ -70,30 +68,30 @@ export async function searchSimilarChunks(
   const queryEmbedding = await generateEmbedding(query);
 
   // Convert the embedding array to a PostgreSQL vector format
-  const vectorString = `[${queryEmbedding.join(',').slice(0, 10000)}]`;
+  const vectorString = `[${queryEmbedding.join(',')}]`;
 
   // Search for similar chunks using pgvector's cosine similarity
   // We search in both chat-specific documents and global documents (chatId = null)
   const results = await prisma.$queryRaw<
     Array<{
       id: string;
-      chunk_text: string;
-      chunk_index: number;
-      document_id: string;
+      chunkText: string;
+      chunkIndex: number;
+      documentId: string;
       filename: string;
       similarity: number;
     }>
   >`
     SELECT
       e.id,
-      e.chunk_text,
-      e.chunk_index,
-      e.document_id,
+      e."chunkText",
+      e."chunkIndex",
+      e."documentId",
       d.filename,
       1 - (e.embedding <=> ${vectorString}::vector) as similarity
     FROM embeddings e
-    JOIN documents d ON e.document_id = d.id
-    WHERE d.chat_id = ${chatId} OR d.chat_id IS NULL
+    JOIN documents d ON e."documentId" = d.id
+    WHERE d."chatId" = ${chatId} OR d."chatId" IS NULL
     ORDER BY e.embedding <=> ${vectorString}::vector
     LIMIT ${topK}
   `;
@@ -107,9 +105,9 @@ export async function searchSimilarChunks(
 export async function formatContextForLLM(
   chunks: Array<{
     id: string;
-    chunk_text: string;
-    chunk_index: number;
-    document_id: string;
+    chunkText: string;
+    chunkIndex: number;
+    documentId: string;
     filename: string;
     similarity: number;
   }>,
@@ -141,12 +139,10 @@ export async function formatContextForLLM(
     contextParts.push('');
 
     // Sort chunks by index to maintain document order
-    const sortedChunks = docChunks.sort(
-      (a, b) => a.chunk_index - b.chunk_index,
-    );
+    const sortedChunks = docChunks.sort((a, b) => a.chunkIndex - b.chunkIndex);
 
     for (const chunk of sortedChunks) {
-      contextParts.push(chunk.chunk_text);
+      contextParts.push(chunk.chunkText);
       contextParts.push('');
     }
 

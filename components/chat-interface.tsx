@@ -60,7 +60,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
                 }`}
               >
                 {message.role === 'assistant' && (
-                  <div className='w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0'>
+                  <div className='w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0'>
                     <Bot className='w-5 h-5 text-primary-foreground' />
                   </div>
                 )}
@@ -87,7 +87,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
                 </Card>
 
                 {message.role === 'user' && (
-                  <div className='w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0'>
+                  <div className='w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0'>
                     <User className='w-5 h-5 text-secondary-foreground' />
                   </div>
                 )}
@@ -97,7 +97,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
 
           {isLoading && (
             <div className='flex gap-3'>
-              <div className='w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0'>
+              <div className='w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0'>
                 <Bot className='w-5 h-5 text-primary-foreground' />
               </div>
               <Card className='p-3 bg-muted'>

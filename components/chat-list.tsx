@@ -109,7 +109,7 @@ export function ChatList({
                 <div className='flex items-start justify-between gap-2'>
                   <div className='flex-1 min-w-0'>
                     <div className='flex items-center gap-2'>
-                      <MessageSquare className='w-4 h-4 text-muted-foreground flex-shrink-0' />
+                      <MessageSquare className='w-4 h-4 text-muted-foreground shrink-0' />
                       <h3 className='font-medium text-sm truncate'>
                         {chat.title}
                       </h3>
@@ -124,7 +124,7 @@ export function ChatList({
                   <Button
                     variant='ghost'
                     size='icon'
-                    className='h-6 w-6 flex-shrink-0'
+                    className='h-6 w-6 shrink-0'
                     onClick={(e) => handleDeleteChat(chat.id, e)}
                   >
                     <Trash2 className='w-3 h-3' />
