@@ -37,12 +37,12 @@ interface Document {
   };
 }
 
-interface FileExplorerProps {
+interface KnowledgeBaseProps {
   chatId: string | null;
   refreshTrigger?: number;
 }
 
-export function FileExplorer({ chatId, refreshTrigger }: FileExplorerProps) {
+export function KnowledgeBase({ chatId, refreshTrigger }: KnowledgeBaseProps) {
   const [chatDocuments, setChatDocuments] = useState<Document[]>([]);
   const [globalDocuments, setGlobalDocuments] = useState<Document[]>([]);
   const [uploading, setUploading] = useState(false);

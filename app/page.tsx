@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { ChatList } from '@/components/chat-list';
-import { ChatInterface } from '@/components/chat-interface';
-import { FileExplorer } from '@/components/file-explorer';
+import { ChatBox } from '@/components/chat-box';
+import { KnowledgeBase } from '@/components/knowledge-base';
 
 export default function Home() {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
@@ -25,10 +25,13 @@ export default function Home() {
         />
 
         {/* Middle Column: Chat Interface */}
-        <ChatInterface chatId={selectedChatId} />
+        <ChatBox chatId={selectedChatId} />
 
         {/* Right Column: File Explorer */}
-        <FileExplorer chatId={selectedChatId} refreshTrigger={refreshTrigger} />
+        <KnowledgeBase
+          chatId={selectedChatId}
+          refreshTrigger={refreshTrigger}
+        />
       </div>
     </div>
   );

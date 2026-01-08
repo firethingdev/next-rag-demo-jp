@@ -8,11 +8,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { Send, Bot, User, MessageSquare } from 'lucide-react';
 
-interface ChatInterfaceProps {
+interface ChatBoxProps {
   chatId: string | null;
 }
 
-export function ChatInterface({ chatId }: ChatInterfaceProps) {
+export function ChatBox({ chatId }: ChatBoxProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
 
