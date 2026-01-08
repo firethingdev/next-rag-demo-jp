@@ -55,6 +55,11 @@ export type Message = Prisma.MessageModel
  */
 export type Document = Prisma.DocumentModel
 /**
+ * Model ChatDocument
+ * 
+ */
+export type ChatDocument = Prisma.ChatDocumentModel
+/**
  * Model Embedding
  * 
  */

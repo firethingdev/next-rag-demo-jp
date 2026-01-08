@@ -11,5 +11,6 @@
 export type * from './models/Chat'
 export type * from './models/Message'
 export type * from './models/Document'
+export type * from './models/ChatDocument'
 export type * from './models/Embedding'
 export type * from './commonInputTypes'

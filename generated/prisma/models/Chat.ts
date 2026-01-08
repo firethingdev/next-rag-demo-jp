@@ -175,7 +175,7 @@ export type ChatWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Chat"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Chat"> | Date | string
   messages?: Prisma.MessageListRelationFilter
-  documents?: Prisma.DocumentListRelationFilter
+  documents?: Prisma.ChatDocumentListRelationFilter
 }
 
 export type ChatOrderByWithRelationInput = {
@@ -184,7 +184,7 @@ export type ChatOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   messages?: Prisma.MessageOrderByRelationAggregateInput
-  documents?: Prisma.DocumentOrderByRelationAggregateInput
+  documents?: Prisma.ChatDocumentOrderByRelationAggregateInput
 }
 
 export type ChatWhereUniqueInput = Prisma.AtLeast<{
@@ -196,7 +196,7 @@ export type ChatWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Chat"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Chat"> | Date | string
   messages?: Prisma.MessageListRelationFilter
-  documents?: Prisma.DocumentListRelationFilter
+  documents?: Prisma.ChatDocumentListRelationFilter
 }, "id">
 
 export type ChatOrderByWithAggregationInput = {
@@ -225,7 +225,7 @@ export type ChatCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   messages?: Prisma.MessageCreateNestedManyWithoutChatInput
-  documents?: Prisma.DocumentCreateNestedManyWithoutChatInput
+  documents?: Prisma.ChatDocumentCreateNestedManyWithoutChatInput
 }
 
 export type ChatUncheckedCreateInput = {
@@ -234,7 +234,7 @@ export type ChatUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutChatInput
-  documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutChatInput
+  documents?: Prisma.ChatDocumentUncheckedCreateNestedManyWithoutChatInput
 }
 
 export type ChatUpdateInput = {
@@ -243,7 +243,7 @@ export type ChatUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.MessageUpdateManyWithoutChatNestedInput
-  documents?: Prisma.DocumentUpdateManyWithoutChatNestedInput
+  documents?: Prisma.ChatDocumentUpdateManyWithoutChatNestedInput
 }
 
 export type ChatUncheckedUpdateInput = {
@@ -252,7 +252,7 @@ export type ChatUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.MessageUncheckedUpdateManyWithoutChatNestedInput
-  documents?: Prisma.DocumentUncheckedUpdateManyWithoutChatNestedInput
+  documents?: Prisma.ChatDocumentUncheckedUpdateManyWithoutChatNestedInput
 }
 
 export type ChatCreateManyInput = {
@@ -302,11 +302,6 @@ export type ChatScalarRelationFilter = {
   isNot?: Prisma.ChatWhereInput
 }
 
-export type ChatNullableScalarRelationFilter = {
-  is?: Prisma.ChatWhereInput | null
-  isNot?: Prisma.ChatWhereInput | null
-}
-
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -335,12 +330,10 @@ export type ChatCreateNestedOneWithoutDocumentsInput = {
   connect?: Prisma.ChatWhereUniqueInput
 }
 
-export type ChatUpdateOneWithoutDocumentsNestedInput = {
+export type ChatUpdateOneRequiredWithoutDocumentsNestedInput = {
   create?: Prisma.XOR<Prisma.ChatCreateWithoutDocumentsInput, Prisma.ChatUncheckedCreateWithoutDocumentsInput>
   connectOrCreate?: Prisma.ChatCreateOrConnectWithoutDocumentsInput
   upsert?: Prisma.ChatUpsertWithoutDocumentsInput
-  disconnect?: Prisma.ChatWhereInput | boolean
-  delete?: Prisma.ChatWhereInput | boolean
   connect?: Prisma.ChatWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ChatUpdateToOneWithWhereWithoutDocumentsInput, Prisma.ChatUpdateWithoutDocumentsInput>, Prisma.ChatUncheckedUpdateWithoutDocumentsInput>
 }
@@ -350,7 +343,7 @@ export type ChatCreateWithoutMessagesInput = {
   title: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  documents?: Prisma.DocumentCreateNestedManyWithoutChatInput
+  documents?: Prisma.ChatDocumentCreateNestedManyWithoutChatInput
 }
 
 export type ChatUncheckedCreateWithoutMessagesInput = {
@@ -358,7 +351,7 @@ export type ChatUncheckedCreateWithoutMessagesInput = {
   title: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutChatInput
+  documents?: Prisma.ChatDocumentUncheckedCreateNestedManyWithoutChatInput
 }
 
 export type ChatCreateOrConnectWithoutMessagesInput = {
@@ -382,7 +375,7 @@ export type ChatUpdateWithoutMessagesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  documents?: Prisma.DocumentUpdateManyWithoutChatNestedInput
+  documents?: Prisma.ChatDocumentUpdateManyWithoutChatNestedInput
 }
 
 export type ChatUncheckedUpdateWithoutMessagesInput = {
@@ -390,7 +383,7 @@ export type ChatUncheckedUpdateWithoutMessagesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  documents?: Prisma.DocumentUncheckedUpdateManyWithoutChatNestedInput
+  documents?: Prisma.ChatDocumentUncheckedUpdateManyWithoutChatNestedInput
 }
 
 export type ChatCreateWithoutDocumentsInput = {
@@ -477,7 +470,7 @@ export type ChatCountOutputTypeCountMessagesArgs<ExtArgs extends runtime.Types.E
  * ChatCountOutputType without action
  */
 export type ChatCountOutputTypeCountDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.DocumentWhereInput
+  where?: Prisma.ChatDocumentWhereInput
 }
 
 
@@ -525,7 +518,7 @@ export type $ChatPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Chat"
   objects: {
     messages: Prisma.$MessagePayload<ExtArgs>[]
-    documents: Prisma.$DocumentPayload<ExtArgs>[]
+    documents: Prisma.$ChatDocumentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -927,7 +920,7 @@ readonly fields: ChatFieldRefs;
 export interface Prisma__ChatClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   messages<T extends Prisma.Chat$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Chat$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  documents<T extends Prisma.Chat$documentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Chat$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  documents<T extends Prisma.Chat$documentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Chat$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChatDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1377,23 +1370,23 @@ export type Chat$messagesArgs<ExtArgs extends runtime.Types.Extensions.InternalA
  */
 export type Chat$documentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Document
+   * Select specific fields to fetch from the ChatDocument
    */
-  select?: Prisma.DocumentSelect<ExtArgs> | null
+  select?: Prisma.ChatDocumentSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Document
+   * Omit specific fields from the ChatDocument
    */
-  omit?: Prisma.DocumentOmit<ExtArgs> | null
+  omit?: Prisma.ChatDocumentOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.DocumentInclude<ExtArgs> | null
-  where?: Prisma.DocumentWhereInput
-  orderBy?: Prisma.DocumentOrderByWithRelationInput | Prisma.DocumentOrderByWithRelationInput[]
-  cursor?: Prisma.DocumentWhereUniqueInput
+  include?: Prisma.ChatDocumentInclude<ExtArgs> | null
+  where?: Prisma.ChatDocumentWhereInput
+  orderBy?: Prisma.ChatDocumentOrderByWithRelationInput | Prisma.ChatDocumentOrderByWithRelationInput[]
+  cursor?: Prisma.ChatDocumentWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.DocumentScalarFieldEnum | Prisma.DocumentScalarFieldEnum[]
+  distinct?: Prisma.ChatDocumentScalarFieldEnum | Prisma.ChatDocumentScalarFieldEnum[]
 }
 
 /**

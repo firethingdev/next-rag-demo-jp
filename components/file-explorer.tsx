@@ -24,12 +24,13 @@ import {
   getDocuments,
   uploadDocument,
   deleteDocument,
+  addDocumentToChat,
+  removeDocumentFromChat,
 } from '@/lib/actions/document.actions';
 
 interface Document {
   id: string;
   filename: string;
-  chatId: string | null;
   createdAt: Date;
   _count?: {
     embeddings: number;
@@ -48,15 +49,17 @@ export function FileExplorer({ chatId, refreshTrigger }: FileExplorerProps) {
 
   const fetchDocuments = useCallback(async () => {
     try {
-      // Fetch all documents
+      // Fetch all documents (Global)
       const allDocs = await getDocuments();
+      setGlobalDocuments(allDocs);
 
-      // Separate chat-specific and global documents
-      const chatDocs = allDocs.filter((doc) => doc.chatId === chatId);
-      const globalDocs = allDocs.filter((doc) => doc.chatId === null);
-
-      setChatDocuments(chatDocs);
-      setGlobalDocuments(globalDocs);
+      // Fetch documents for this chat
+      if (chatId) {
+        const chatDocs = await getDocuments(chatId);
+        setChatDocuments(chatDocs);
+      } else {
+        setChatDocuments([]);
+      }
     } catch (error) {
       console.error('Failed to fetch documents:', error);
       toast.error('Failed to fetch documents');
@@ -99,10 +102,34 @@ export function FileExplorer({ chatId, refreshTrigger }: FileExplorerProps) {
     try {
       await deleteDocument(docId);
       await fetchDocuments();
-      toast.success('Document deleted');
+      toast.success('Document deleted from global library');
     } catch (error) {
       console.error('Failed to delete document:', error);
       toast.error('Failed to delete document');
+    }
+  };
+
+  const handleAddToChat = async (docId: string) => {
+    if (!chatId) return;
+    try {
+      await addDocumentToChat(docId, chatId);
+      await fetchDocuments();
+      toast.success('Document added to chat');
+    } catch (error) {
+      console.error('Failed to add document to chat:', error);
+      toast.error('Failed to add document to chat');
+    }
+  };
+
+  const handleRemoveFromChat = async (docId: string) => {
+    if (!chatId) return;
+    try {
+      await removeDocumentFromChat(docId, chatId);
+      await fetchDocuments();
+      toast.success('Document removed from chat');
+    } catch (error) {
+      console.error('Failed to remove document from chat:', error);
+      toast.error('Failed to remove document from chat');
     }
   };
 
@@ -164,6 +191,8 @@ export function FileExplorer({ chatId, refreshTrigger }: FileExplorerProps) {
                   key={doc.id}
                   document={doc}
                   onDelete={() => handleDeleteDocument(doc.id)}
+                  onRemove={() => handleRemoveFromChat(doc.id)}
+                  isInChat={true}
                 />
               ))
             )}
@@ -174,8 +203,8 @@ export function FileExplorer({ chatId, refreshTrigger }: FileExplorerProps) {
       <Separator />
 
       {/* Global documents */}
-      <div className='flex-1 flex flex-col min-h-0'>
-        <div className='p-3 bg-muted/30'>
+      <div className='flex flex-col h-1/2 min-h-0'>
+        <div className='p-3 bg-muted/30 border-t'>
           <div className='flex items-center justify-between mb-2'>
             <h3 className='text-xs font-medium text-muted-foreground uppercase'>
               Global Files
@@ -214,13 +243,19 @@ export function FileExplorer({ chatId, refreshTrigger }: FileExplorerProps) {
                 No global documents yet
               </p>
             ) : (
-              globalDocuments.map((doc) => (
-                <DocumentItem
-                  key={doc.id}
-                  document={doc}
-                  onDelete={() => handleDeleteDocument(doc.id)}
-                />
-              ))
+              globalDocuments.map((doc) => {
+                const isInChat = chatDocuments.some((cd) => cd.id === doc.id);
+                return (
+                  <DocumentItem
+                    key={doc.id}
+                    document={doc}
+                    onDelete={() => handleDeleteDocument(doc.id)}
+                    onAdd={() => handleAddToChat(doc.id)}
+                    isInChat={isInChat}
+                    showAddButton={!!chatId && !isInChat}
+                  />
+                );
+              })
             )}
           </div>
         </ScrollArea>
@@ -232,12 +267,20 @@ export function FileExplorer({ chatId, refreshTrigger }: FileExplorerProps) {
 function DocumentItem({
   document,
   onDelete,
+  onAdd,
+  onRemove,
+  isInChat,
+  showAddButton,
 }: {
   document: Document;
   onDelete: () => void;
+  onAdd?: () => void;
+  onRemove?: () => void;
+  isInChat?: boolean;
+  showAddButton?: boolean;
 }) {
   return (
-    <Card className='p-2'>
+    <Card className={`p-2 ${isInChat ? 'border-primary/50 bg-primary/5' : ''}`}>
       <div className='flex items-start gap-2'>
         <File className='w-4 h-4 text-muted-foreground shrink-0 mt-0.5' />
         <div className='flex-1 min-w-0'>
@@ -253,32 +296,60 @@ function DocumentItem({
             </span>
           </div>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant='ghost' size='icon' className='h-6 w-6 shrink-0'>
-              <Trash2 className='w-3 h-3' />
+        <div className='flex items-center gap-1'>
+          {showAddButton && (
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-6 w-6 shrink-0'
+              onClick={onAdd}
+              title='Add to current chat'
+            >
+              <Upload className='w-3 h-3 rotate-180' />
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the
-                document &quot;{document.filename}&quot; and its associated
-                embeddings.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={onDelete}
-                className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+          )}
+          {onRemove && (
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-6 w-6 shrink-0'
+              onClick={onRemove}
+              title='Remove from current chat'
+            >
+              <Trash2 className='w-3 h-3 text-orange-500' />
+            </Button>
+          )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='h-6 w-6 shrink-0'
+                title='Delete from global library'
               >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <Trash2 className='w-3 h-3 text-destructive' />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will PERMANENTLY delete &quot;{document.filename}&quot;
+                  from the global library and ALL chats that reference it.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={onDelete}
+                  className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                >
+                  Delete Everywhere
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </Card>
   );

@@ -54,6 +54,7 @@ export const ModelName = {
   Chat: 'Chat',
   Message: 'Message',
   Document: 'Document',
+  ChatDocument: 'ChatDocument',
   Embedding: 'Embedding'
 } as const
 
@@ -96,7 +97,6 @@ export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeo
 
 export const DocumentScalarFieldEnum = {
   id: 'id',
-  chatId: 'chatId',
   filename: 'filename',
   content: 'content',
   metadata: 'metadata',
@@ -104,6 +104,15 @@ export const DocumentScalarFieldEnum = {
 } as const
 
 export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+export const ChatDocumentScalarFieldEnum = {
+  chatId: 'chatId',
+  documentId: 'documentId',
+  createdAt: 'createdAt'
+} as const
+
+export type ChatDocumentScalarFieldEnum = (typeof ChatDocumentScalarFieldEnum)[keyof typeof ChatDocumentScalarFieldEnum]
 
 
 export const EmbeddingScalarFieldEnum = {

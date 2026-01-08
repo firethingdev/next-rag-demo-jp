@@ -387,6 +387,7 @@ export const ModelName = {
   Chat: 'Chat',
   Message: 'Message',
   Document: 'Document',
+  ChatDocument: 'ChatDocument',
   Embedding: 'Embedding'
 } as const
 
@@ -403,7 +404,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "chat" | "message" | "document" | "embedding"
+    modelProps: "chat" | "message" | "document" | "chatDocument" | "embedding"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -629,6 +630,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ChatDocument: {
+      payload: Prisma.$ChatDocumentPayload<ExtArgs>
+      fields: Prisma.ChatDocumentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ChatDocumentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ChatDocumentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload>
+        }
+        findFirst: {
+          args: Prisma.ChatDocumentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ChatDocumentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload>
+        }
+        findMany: {
+          args: Prisma.ChatDocumentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload>[]
+        }
+        create: {
+          args: Prisma.ChatDocumentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload>
+        }
+        createMany: {
+          args: Prisma.ChatDocumentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ChatDocumentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload>[]
+        }
+        delete: {
+          args: Prisma.ChatDocumentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload>
+        }
+        update: {
+          args: Prisma.ChatDocumentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload>
+        }
+        deleteMany: {
+          args: Prisma.ChatDocumentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ChatDocumentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ChatDocumentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload>[]
+        }
+        upsert: {
+          args: Prisma.ChatDocumentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChatDocumentPayload>
+        }
+        aggregate: {
+          args: Prisma.ChatDocumentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateChatDocument>
+        }
+        groupBy: {
+          args: Prisma.ChatDocumentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ChatDocumentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ChatDocumentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ChatDocumentCountAggregateOutputType> | number
+        }
+      }
+    }
     Embedding: {
       payload: Prisma.$EmbeddingPayload<ExtArgs>
       fields: Prisma.EmbeddingFieldRefs
@@ -765,7 +840,6 @@ export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeo
 
 export const DocumentScalarFieldEnum = {
   id: 'id',
-  chatId: 'chatId',
   filename: 'filename',
   content: 'content',
   metadata: 'metadata',
@@ -773,6 +847,15 @@ export const DocumentScalarFieldEnum = {
 } as const
 
 export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+export const ChatDocumentScalarFieldEnum = {
+  chatId: 'chatId',
+  documentId: 'documentId',
+  createdAt: 'createdAt'
+} as const
+
+export type ChatDocumentScalarFieldEnum = (typeof ChatDocumentScalarFieldEnum)[keyof typeof ChatDocumentScalarFieldEnum]
 
 
 export const EmbeddingScalarFieldEnum = {
@@ -1000,6 +1083,7 @@ export type GlobalOmitConfig = {
   chat?: Prisma.ChatOmit
   message?: Prisma.MessageOmit
   document?: Prisma.DocumentOmit
+  chatDocument?: Prisma.ChatDocumentOmit
   embedding?: Prisma.EmbeddingOmit
 }
 

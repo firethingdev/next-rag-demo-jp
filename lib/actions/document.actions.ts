@@ -8,7 +8,6 @@ import { storeEmbeddings } from '@/lib/vector-store';
 export interface Document {
   id: string;
   filename: string;
-  chatId: string | null;
   createdAt: Date;
   _count?: {
     embeddings: number;
@@ -16,14 +15,27 @@ export interface Document {
 }
 
 /**
- * Fetch documents, optionally filtered by chatId
+ * Fetch documents
+ * @param chatId - If provided, returns documents connected to this chat.
+ *                If 'global', returns all global documents (not connected to any chat - wait, the request says ALL docs are global).
+ *                Actually, let's make it:
+ *                - if chatId is provided: return documents connected to that chat.
+ *                - if chatId is null/undefined: return all documents (since they are all global).
  */
 export async function getDocuments(
   chatId?: string | null,
 ): Promise<Document[]> {
   try {
+    const where: Prisma.DocumentWhereInput = {};
+
+    if (chatId) {
+      where.chats = {
+        some: { chatId },
+      };
+    }
+
     const documents = await prisma.document.findMany({
-      where: chatId !== undefined ? { chatId } : {},
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
@@ -32,7 +44,7 @@ export async function getDocuments(
       },
     });
 
-    return documents;
+    return documents as Document[];
   } catch (error) {
     console.error('Error fetching documents:', error);
     throw new Error('Failed to fetch documents');
@@ -65,10 +77,14 @@ export async function uploadDocument(formData: FormData): Promise<Document> {
       data: {
         filename: processed.filename,
         content: processed.content,
-        chatId: chatId || null,
         metadata: (processed.metadata ?? undefined) as
           | Prisma.InputJsonValue
           | undefined,
+        chats: chatId
+          ? {
+              create: { chatId },
+            }
+          : undefined,
       },
       include: {
         _count: {
@@ -81,7 +97,7 @@ export async function uploadDocument(formData: FormData): Promise<Document> {
     await storeEmbeddings(document.id, processed.chunks);
 
     revalidatePath('/');
-    return document;
+    return document as Document;
   } catch (error) {
     console.error('Error uploading document:', error);
     throw new Error('Failed to upload document');
@@ -105,16 +121,20 @@ export async function deleteDocument(id: string): Promise<void> {
 }
 
 /**
- * Update document's chat association
+ * Add document to chat (create reference)
  */
-export async function updateDocument(
+export async function addDocumentToChat(
   id: string,
-  chatId: string | null,
+  chatId: string,
 ): Promise<Document> {
   try {
     const document = await prisma.document.update({
       where: { id },
-      data: { chatId: chatId || null },
+      data: {
+        chats: {
+          create: { chatId },
+        },
+      },
       include: {
         _count: {
           select: { embeddings: true },
@@ -123,9 +143,44 @@ export async function updateDocument(
     });
 
     revalidatePath('/');
-    return document;
+    return document as Document;
   } catch (error) {
-    console.error('Error updating document:', error);
-    throw new Error('Failed to update document');
+    console.error('Error adding document to chat:', error);
+    throw new Error('Failed to add document to chat');
+  }
+}
+
+/**
+ * Remove document from chat (delete reference)
+ */
+export async function removeDocumentFromChat(
+  id: string,
+  chatId: string,
+): Promise<Document> {
+  try {
+    const document = await prisma.document.update({
+      where: { id },
+      data: {
+        chats: {
+          delete: {
+            chatId_documentId: {
+              chatId,
+              documentId: id,
+            },
+          },
+        },
+      },
+      include: {
+        _count: {
+          select: { embeddings: true },
+        },
+      },
+    });
+
+    revalidatePath('/');
+    return document as Document;
+  } catch (error) {
+    console.error('Error removing document from chat:', error);
+    throw new Error('Failed to remove document from chat');
   }
 }

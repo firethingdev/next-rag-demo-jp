@@ -65,10 +65,12 @@ export async function searchSimilarChunks(
   chatId: string,
   topK: number = AI_CONFIG.topK,
 ) {
-  // First, get the IDs of documents that belong to this chat or are global
+  // First, get the IDs of documents that belong to this chat
   const docs = await prisma.document.findMany({
     where: {
-      OR: [{ chatId: chatId }, { chatId: null }],
+      chats: {
+        some: { chatId },
+      },
     },
     select: { id: true, filename: true },
   });
