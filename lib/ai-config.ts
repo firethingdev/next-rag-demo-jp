@@ -4,8 +4,8 @@ const gatewayApiKey = process.env.AI_GATEWAY_API_KEY;
 const gatewayBaseURL = process.env.AI_GATEWAY_BASE_URL;
 
 export const AI_CONFIG = {
-  chatModelName: 'openai/gpt-5',
-  embeddingModelName: 'openai/text-embedding-3-small',
+  chatModelName: 'google/gemini-3-flash',
+  embeddingModelName: 'google/text-embedding-005',
   embeddingDimensions: 768,
   maxTokens: 8192,
   temperature: 0.7,
