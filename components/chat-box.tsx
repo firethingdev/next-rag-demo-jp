@@ -7,7 +7,17 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Send, Bot, User, MessageSquare } from 'lucide-react';
+import {
+  Send,
+  Bot,
+  User,
+  MessageSquare,
+  Edit2,
+  RefreshCw,
+  Check,
+  X,
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import {
   saveMessage,
@@ -29,11 +39,15 @@ export function ChatBox({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
   const [currentTitle, setCurrentTitle] = useState(initialTitle);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitleValue, setEditTitleValue] = useState(initialTitle || '');
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const router = useRouter();
 
   // Update currentTitle if initialTitle changes (e.g. on navigation)
   useEffect(() => {
     setCurrentTitle(initialTitle);
+    setEditTitleValue(initialTitle || '');
   }, [initialTitle]);
 
   const { messages, sendMessage, status } = useChat({
@@ -92,6 +106,50 @@ export function ChatBox({
     sendMessage({ text: currentInput });
   };
 
+  const handleTitleUpdate = async () => {
+    if (!chatId || !editTitleValue.trim() || editTitleValue === currentTitle) {
+      setIsEditingTitle(false);
+      setEditTitleValue(currentTitle || '');
+      return;
+    }
+
+    try {
+      await updateChatTitle(chatId, editTitleValue);
+      setCurrentTitle(editTitleValue);
+      setIsEditingTitle(false);
+      router.refresh();
+      window.dispatchEvent(new CustomEvent('chat-updated'));
+    } catch (error) {
+      console.error('Failed to update title:', error);
+    }
+  };
+
+  const handleRegenerateTitle = async () => {
+    if (!chatId || messages.length < 2 || isRegenerating) return;
+
+    setIsRegenerating(true);
+    try {
+      const titleMessages = messages.map((m) => ({
+        role: m.role,
+        content: (m.parts || [])
+          .filter((part) => part.type === 'text')
+          .map((part) => (part.type === 'text' ? part.text : ''))
+          .join(''),
+      }));
+
+      const newTitle = await generateTitle(titleMessages);
+      await updateChatTitle(chatId, newTitle);
+      setCurrentTitle(newTitle);
+      setEditTitleValue(newTitle);
+      router.refresh();
+      window.dispatchEvent(new CustomEvent('chat-updated'));
+    } catch (error) {
+      console.error('Failed to regenerate title:', error);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   if (!chatId) {
     return (
       <div className='flex items-center justify-center h-full bg-muted/5'>
@@ -109,17 +167,84 @@ export function ChatBox({
   return (
     <div className='flex flex-col h-screen bg-background'>
       <div className='sticky top-0 z-10 flex items-center justify-between px-6 py-3 border-b bg-background/80 backdrop-blur-md'>
-        <div className='flex items-center gap-3'>
-          <div className='p-2 rounded-lg bg-primary/10 text-primary'>
+        <div className='flex items-center gap-3 flex-1 min-w-0'>
+          <div className='p-2 rounded-lg bg-primary/10 text-primary shrink-0'>
             <MessageSquare className='w-4 h-4' />
           </div>
-          <h1 className='font-semibold text-lg truncate max-w-[200px] sm:max-w-[400px]'>
-            {currentTitle || 'New Conversation'}
-          </h1>
+          {isEditingTitle ? (
+            <div className='flex items-center gap-2 flex-1 max-w-md'>
+              <Input
+                value={editTitleValue}
+                onChange={(e) => setEditTitleValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleTitleUpdate();
+                  if (e.key === 'Escape') {
+                    setIsEditingTitle(false);
+                    setEditTitleValue(currentTitle || '');
+                  }
+                }}
+                className='h-8'
+                autoFocus
+              />
+              <Button
+                size='icon'
+                variant='ghost'
+                className='h-8 w-8 text-green-600'
+                onClick={handleTitleUpdate}
+              >
+                <Check className='w-4 h-4' />
+              </Button>
+              <Button
+                size='icon'
+                variant='ghost'
+                className='h-8 w-8 text-red-600'
+                onClick={() => {
+                  setIsEditingTitle(false);
+                  setEditTitleValue(currentTitle || '');
+                }}
+              >
+                <X className='w-4 h-4' />
+              </Button>
+            </div>
+          ) : (
+            <div className='flex items-center gap-2 overflow-hidden'>
+              <h1
+                className='font-semibold text-lg truncate cursor-pointer hover:text-primary transition-colors'
+                onClick={() => setIsEditingTitle(true)}
+              >
+                {currentTitle || 'New Conversation'}
+              </h1>
+              <div className='flex items-center gap-1 shrink-0'>
+                <Button
+                  size='icon'
+                  variant='ghost'
+                  className='h-8 w-8 text-muted-foreground hover:text-primary'
+                  onClick={() => setIsEditingTitle(true)}
+                  title='Edit title'
+                >
+                  <Edit2 className='w-3 h-3' />
+                </Button>
+                {messages.length >= 2 && (
+                  <Button
+                    size='icon'
+                    variant='ghost'
+                    className='h-8 w-8 text-muted-foreground hover:text-primary'
+                    onClick={handleRegenerateTitle}
+                    disabled={isRegenerating}
+                    title='Regenerate title'
+                  >
+                    <RefreshCw
+                      className={`w-3.5 h-3.5 ${isRegenerating ? 'animate-spin' : ''}`}
+                    />
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className='space-y-4 max-w-3xl mx-auto overflow-y-auto grow p-4'>
+      <div className='space-y-4 w-full mx-auto overflow-y-auto grow p-4'>
         {messages.length === 0 ? (
           <div className='text-center text-muted-foreground py-12'>
             <div className='w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4 border border-border/50'>

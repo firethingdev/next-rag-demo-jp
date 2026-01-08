@@ -116,11 +116,13 @@ export async function generateTitle(
   messages: { role: string; content: string }[],
 ): Promise<string> {
   try {
-    const firstMessages = messages.slice(0, 2);
+    const conversation = messages
+      .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n');
+
     const prompt = `Based on the following conversation, generate a concise, catchy 3-5 word title for this chat. Do not use quotes or special characters.
 
-User: ${firstMessages[0]?.content}
-Assistant: ${firstMessages[1]?.content}`;
+${conversation}`;
 
     const response = await aiModel.invoke([new HumanMessage(prompt)]);
 
