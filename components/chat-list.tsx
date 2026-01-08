@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,14 +32,12 @@ interface Chat {
 interface ChatListProps {
   selectedChatId: string | null;
   onSelectChat: (chatId: string) => void;
-  onCreateChat: () => void;
   refreshTrigger?: number;
 }
 
 export function ChatList({
   selectedChatId,
   onSelectChat,
-  onCreateChat,
   refreshTrigger,
 }: ChatListProps) {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -49,6 +46,14 @@ export function ChatList({
   useEffect(() => {
     fetchChats();
   }, [refreshTrigger]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      fetchChats();
+    };
+    window.addEventListener('chat-updated', handleUpdate);
+    return () => window.removeEventListener('chat-updated', handleUpdate);
+  }, []);
 
   const fetchChats = async () => {
     try {
@@ -65,8 +70,7 @@ export function ChatList({
   const handleCreateChat = async () => {
     try {
       const newChat = await createChat('New Chat');
-      setChats([newChat, ...chats]);
-      onCreateChat();
+      setChats((prev) => [newChat, ...prev]);
       onSelectChat(newChat.id);
       toast.success('Chat created');
     } catch (error) {
@@ -90,7 +94,7 @@ export function ChatList({
   };
 
   return (
-    <div className='flex flex-col h-full border-r bg-muted/10'>
+    <div className='flex flex-col h-screen border-r bg-muted/10'>
       <div className='p-4 border-b'>
         <Button onClick={handleCreateChat} className='w-full' size='sm'>
           <Plus className='w-4 h-4 mr-2' />
@@ -98,77 +102,75 @@ export function ChatList({
         </Button>
       </div>
 
-      <ScrollArea className='flex-1'>
-        <div className='p-2 space-y-2'>
-          {loading ? (
-            <div className='text-center text-sm text-muted-foreground p-4'>
-              Loading chats...
-            </div>
-          ) : chats.length === 0 ? (
-            <div className='text-center text-sm text-muted-foreground p-4'>
-              No chats yet. Create one to get started!
-            </div>
-          ) : (
-            chats.map((chat) => (
-              <Card
-                key={chat.id}
-                className={`p-3 cursor-pointer hover:bg-accent transition-colors ${
-                  selectedChatId === chat.id ? 'bg-accent border-primary' : ''
-                }`}
-                onClick={() => onSelectChat(chat.id)}
-              >
-                <div className='flex items-start justify-between gap-2'>
-                  <div className='flex-1 min-w-0'>
-                    <div className='flex items-center gap-2'>
-                      <MessageSquare className='w-4 h-4 text-muted-foreground shrink-0' />
-                      <h3 className='font-medium text-sm truncate'>
-                        {chat.title}
-                      </h3>
-                    </div>
-                    <p className='text-xs text-muted-foreground mt-1'>
-                      {chat._count?.messages || 0} messages •{' '}
-                      {formatDistanceToNow(new Date(chat.updatedAt), {
-                        addSuffix: true,
-                      })}
-                    </p>
+      <div className='p-2 space-y-2 h-full overflow-y-auto'>
+        {loading ? (
+          <div className='text-center text-sm text-muted-foreground p-4'>
+            Loading chats...
+          </div>
+        ) : chats.length === 0 ? (
+          <div className='text-center text-sm text-muted-foreground p-4'>
+            No chats yet. Create one to get started!
+          </div>
+        ) : (
+          chats.map((chat) => (
+            <Card
+              key={chat.id}
+              className={`p-3 cursor-pointer hover:bg-accent transition-colors ${
+                selectedChatId === chat.id ? 'bg-accent border-primary' : ''
+              }`}
+              onClick={() => onSelectChat(chat.id)}
+            >
+              <div className='flex items-start justify-between gap-2'>
+                <div className='flex-1 min-w-0'>
+                  <div className='flex items-center gap-2'>
+                    <MessageSquare className='w-4 h-4 text-muted-foreground shrink-0' />
+                    <h3 className='font-medium text-sm truncate'>
+                      {chat.title}
+                    </h3>
                   </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        className='h-6 w-6 shrink-0'
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Trash2 className='w-3 h-3' />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently
-                          delete the chat &quot;{chat.title}&quot; and all its
-                          messages.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteChat(chat.id)}
-                          className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <p className='text-xs text-muted-foreground mt-1'>
+                    {chat._count?.messages || 0} messages •{' '}
+                    {formatDistanceToNow(new Date(chat.updatedAt), {
+                      addSuffix: true,
+                    })}
+                  </p>
                 </div>
-              </Card>
-            ))
-          )}
-        </div>
-      </ScrollArea>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='h-6 w-6 shrink-0'
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Trash2 className='w-3 h-3' />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete the chat &quot;{chat.title}&quot; and all its
+                        messages.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDeleteChat(chat.id)}
+                        className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   );
 }
