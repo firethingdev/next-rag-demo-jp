@@ -242,6 +242,18 @@ export function ChatBox({
             </div>
           )}
         </div>
+
+        <div className='flex items-center gap-2 ml-4'>
+          <Button
+            size='icon'
+            variant='ghost'
+            className='h-8 w-8 text-muted-foreground hover:text-destructive'
+            onClick={() => router.push('/')}
+            title='Close chat'
+          >
+            <X className='w-4 h-4' />
+          </Button>
+        </div>
       </div>
 
       <div className='space-y-4 w-full mx-auto overflow-y-auto grow p-4'>
