@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Upload, File, Trash2, Loader2 } from 'lucide-react';
+import { Upload, Plus, Minus, File, Trash2, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
   getDocuments,
@@ -190,7 +190,6 @@ export function KnowledgeBase({ chatId, refreshTrigger }: KnowledgeBaseProps) {
                 <DocumentItem
                   key={doc.id}
                   document={doc}
-                  onDelete={() => handleDeleteDocument(doc.id)}
                   onRemove={() => handleRemoveFromChat(doc.id)}
                   isInChat={true}
                 />
@@ -238,24 +237,24 @@ export function KnowledgeBase({ chatId, refreshTrigger }: KnowledgeBaseProps) {
 
         <ScrollArea className='flex-1'>
           <div className='p-2 space-y-2'>
-            {globalDocuments.length === 0 ? (
+            {globalDocuments.filter(
+              (doc) => !chatDocuments.some((cd) => cd.id === doc.id),
+            ).length === 0 ? (
               <p className='text-xs text-muted-foreground text-center py-4'>
                 No global documents yet
               </p>
             ) : (
-              globalDocuments.map((doc) => {
-                const isInChat = chatDocuments.some((cd) => cd.id === doc.id);
-                return (
+              globalDocuments
+                .filter((doc) => !chatDocuments.some((cd) => cd.id === doc.id))
+                .map((doc) => (
                   <DocumentItem
                     key={doc.id}
                     document={doc}
                     onDelete={() => handleDeleteDocument(doc.id)}
                     onAdd={() => handleAddToChat(doc.id)}
-                    isInChat={isInChat}
-                    showAddButton={!!chatId && !isInChat}
+                    showAddButton={!!chatId}
                   />
-                );
-              })
+                ))
             )}
           </div>
         </ScrollArea>
@@ -273,7 +272,7 @@ function DocumentItem({
   showAddButton,
 }: {
   document: Document;
-  onDelete: () => void;
+  onDelete?: () => void;
   onAdd?: () => void;
   onRemove?: () => void;
   isInChat?: boolean;
@@ -305,7 +304,7 @@ function DocumentItem({
               onClick={onAdd}
               title='Add to current chat'
             >
-              <Upload className='w-3 h-3 rotate-180' />
+              <Plus className='w-3 h-3' />
             </Button>
           )}
           {onRemove && (
@@ -316,39 +315,41 @@ function DocumentItem({
               onClick={onRemove}
               title='Remove from current chat'
             >
-              <Trash2 className='w-3 h-3 text-orange-500' />
+              <Minus className='w-3 h-3' />
             </Button>
           )}
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='h-6 w-6 shrink-0'
-                title='Delete from global library'
-              >
-                <Trash2 className='w-3 h-3 text-destructive' />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will PERMANENTLY delete &quot;{document.filename}&quot;
-                  from the global library and ALL chats that reference it.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={onDelete}
-                  className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+          {onDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='h-6 w-6 shrink-0'
+                  title='Delete from global library'
                 >
-                  Delete Everywhere
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  <Trash2 className='w-3 h-3 text-destructive' />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will PERMANENTLY delete &quot;{document.filename}&quot;
+                    from the global library and ALL chats that reference it.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onDelete}
+                    className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                  >
+                    Delete Everywhere
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </div>
     </Card>
