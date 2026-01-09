@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -30,18 +31,24 @@ interface Chat {
 }
 
 interface ChatListProps {
-  selectedChatId: string | null;
-  onSelectChat: (chatId: string) => void;
   refreshTrigger?: number;
 }
 
-export function ChatList({
-  selectedChatId,
-  onSelectChat,
-  refreshTrigger,
-}: ChatListProps) {
+export function ChatList({ refreshTrigger }: ChatListProps) {
+  const params = useParams();
+  const router = useRouter();
+  const selectedChatId = params?.id
+    ? Array.isArray(params.id)
+      ? params.id[0]
+      : params.id
+    : null;
+
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const onSelectChat = (chatId: string) => {
+    router.push(`/${chatId}`);
+  };
 
   useEffect(() => {
     fetchChats();

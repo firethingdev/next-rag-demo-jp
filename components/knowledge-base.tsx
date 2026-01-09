@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -39,11 +40,17 @@ interface Document {
 }
 
 interface KnowledgeBaseProps {
-  chatId: string | null;
   refreshTrigger?: number;
 }
 
-export function KnowledgeBase({ chatId, refreshTrigger }: KnowledgeBaseProps) {
+export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
+  const params = useParams();
+  const chatId = params?.id
+    ? Array.isArray(params.id)
+      ? params.id[0]
+      : params.id
+    : null;
+
   const [chatDocuments, setChatDocuments] = useState<Document[]>([]);
   const [globalDocuments, setGlobalDocuments] = useState<Document[]>([]);
   const [uploading, setUploading] = useState(false);

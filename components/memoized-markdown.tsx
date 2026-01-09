@@ -11,10 +11,7 @@ const MemoizedMarkdownBlock = memo(
   ({ content }: { content: string }) => {
     return <ReactMarkdown>{content}</ReactMarkdown>;
   },
-  (prevProps, nextProps) => {
-    if (prevProps.content !== nextProps.content) return false;
-    return true;
-  },
+  (prevProps, nextProps) => prevProps.content === nextProps.content,
 );
 
 MemoizedMarkdownBlock.displayName = 'MemoizedMarkdownBlock';
