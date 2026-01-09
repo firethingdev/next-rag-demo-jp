@@ -1,8 +1,6 @@
 import { toBaseMessages, toUIMessageStream } from '@ai-sdk/langchain';
 import { createUIMessageStreamResponse, UIMessage } from 'ai';
-import { aiModel } from '@/lib/ai-config';
-import { searchSimilarChunks, formatContextForLLM } from '@/lib/vector-store';
-import { SystemMessage } from '@langchain/core/messages';
+import { runRagAgent } from '@/lib/agent';
 
 export const maxDuration = 30;
 
@@ -11,9 +9,6 @@ export async function POST(request: Request) {
     // Extract messages and chatId from the request
     const { messages, id: chatId }: { messages: UIMessage[]; id?: string } =
       await request.json();
-
-    console.log('=== MESSAGES COUNT ===', messages.length);
-    console.log('=== CHAT ID ===', chatId);
 
     if (messages.length === 0) {
       console.error('No messages in request');
@@ -24,36 +19,18 @@ export async function POST(request: Request) {
 
     // Convert AI SDK UIMessages to LangChain messages
     const langchainMessages = await toBaseMessages(messages);
+    console.log('=== STARTING RAG AGENT ===');
 
-    // If we have a chatId (or it's a general query), perform RAG if needed
-    // Usually we use the last message as the query
-    const lastMessage = messages[messages.length - 1];
-    const query = lastMessage.parts
-      .filter((p) => p.type === 'text')
-      .map((p) => (p as { text: string }).text)
-      .join(' ');
+    // Run the RAG agent process (History -> Query Transform -> Search -> Generate)
+    const stream = await runRagAgent(langchainMessages, chatId);
+    console.log('=== AGENT STREAM STARTED ===');
 
-    if (query && chatId) {
-      console.log('=== PERFORMING RAG SEARCH ===');
-      const similarChunks = await searchSimilarChunks(query, chatId);
-      const context = await formatContextForLLM(similarChunks);
-
-      if (context) {
-        console.log('=== CONTEXT RETRIEVED ===');
-        // Prepend system message with context
-        langchainMessages.unshift(new SystemMessage(context));
-      }
-    }
-
-    // Stream the response from the model
-    const stream = await aiModel.stream(langchainMessages);
-
-    // Convert the LangChain stream to UI message stream and return response
+    // Convert the LangChain stream chunks back to UI message stream
     return createUIMessageStreamResponse({
       stream: toUIMessageStream(stream),
     });
   } catch (error) {
-    console.error('=== ERROR ===', error);
+    console.error('=== CHAT API ERROR ===', error);
     return new Response(
       JSON.stringify({
         error: 'Failed to process message',
