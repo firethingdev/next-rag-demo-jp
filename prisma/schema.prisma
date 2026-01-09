@@ -37,6 +37,7 @@ model Document {
   id         String         @id @default(cuid())
   filename   String
   content    String         @db.Text
+  url        String?
   metadata   Json?
   createdAt  DateTime       @default(now())
   embeddings Embedding[]

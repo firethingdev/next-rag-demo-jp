@@ -1,4 +1,0 @@
-DATABASE_URL="postgresql://user:password@host:5432/database?sslmode=require"
-GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-api-key-here"
-# Optional: Vercel AI Gateway URL
-# VERCEL_AI_GATEWAY_URL="https://your-gateway-url"

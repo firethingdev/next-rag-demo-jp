@@ -4,10 +4,12 @@ import prisma, { Prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { processDocument, extractTextFromFile } from '@/lib/document-processor';
 import { storeEmbeddings } from '@/lib/vector-store';
+import { put, del } from '@vercel/blob';
 
 export interface Document {
   id: string;
   filename: string;
+  url?: string | null;
   createdAt: Date;
   _count?: {
     embeddings: number;
@@ -66,10 +68,16 @@ export async function uploadDocument(formData: FormData): Promise<Document> {
     // Read file content
     const content = await extractTextFromFile(file);
 
+    // Upload to Vercel Blob
+    const blob = await put(file.name, file, {
+      access: 'public',
+    });
+
     // Process document (chunk it)
     const processed = await processDocument(file.name, content, {
       size: file.size,
       type: file.type,
+      url: blob.url,
     });
 
     // Store document in database
@@ -77,6 +85,7 @@ export async function uploadDocument(formData: FormData): Promise<Document> {
       data: {
         filename: processed.filename,
         content: processed.content,
+        url: blob.url,
         metadata: (processed.metadata ?? undefined) as
           | Prisma.InputJsonValue
           | undefined,
@@ -109,6 +118,15 @@ export async function uploadDocument(formData: FormData): Promise<Document> {
  */
 export async function deleteDocument(id: string): Promise<void> {
   try {
+    const document = await prisma.document.findUnique({
+      where: { id },
+      select: { url: true },
+    });
+
+    if (document?.url) {
+      await del(document.url);
+    }
+
     await prisma.document.delete({
       where: { id },
     });

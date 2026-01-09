@@ -32,6 +32,7 @@ interface Document {
   id: string;
   filename: string;
   createdAt: Date;
+  url?: string | null;
   _count?: {
     embeddings: number;
   };
@@ -283,7 +284,18 @@ function DocumentItem({
       <div className='flex items-start gap-2'>
         <File className='w-4 h-4 text-muted-foreground shrink-0 mt-0.5' />
         <div className='flex-1 min-w-0'>
-          <p className='text-xs font-medium truncate'>{document.filename}</p>
+          {document.url ? (
+            <a
+              href={document.url}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='text-xs font-medium truncate hover:underline hover:text-primary cursor-pointer block'
+            >
+              {document.filename}
+            </a>
+          ) : (
+            <p className='text-xs font-medium truncate'>{document.filename}</p>
+          )}
           <div className='flex items-center gap-2 mt-1'>
             <Badge variant='secondary' className='text-[10px] h-4 px-1'>
               {document._count?.embeddings || 0} chunks

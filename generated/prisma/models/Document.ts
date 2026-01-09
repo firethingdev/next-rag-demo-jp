@@ -28,6 +28,7 @@ export type DocumentMinAggregateOutputType = {
   id: string | null
   filename: string | null
   content: string | null
+  url: string | null
   createdAt: Date | null
 }
 
@@ -35,6 +36,7 @@ export type DocumentMaxAggregateOutputType = {
   id: string | null
   filename: string | null
   content: string | null
+  url: string | null
   createdAt: Date | null
 }
 
@@ -42,6 +44,7 @@ export type DocumentCountAggregateOutputType = {
   id: number
   filename: number
   content: number
+  url: number
   metadata: number
   createdAt: number
   _all: number
@@ -52,6 +55,7 @@ export type DocumentMinAggregateInputType = {
   id?: true
   filename?: true
   content?: true
+  url?: true
   createdAt?: true
 }
 
@@ -59,6 +63,7 @@ export type DocumentMaxAggregateInputType = {
   id?: true
   filename?: true
   content?: true
+  url?: true
   createdAt?: true
 }
 
@@ -66,6 +71,7 @@ export type DocumentCountAggregateInputType = {
   id?: true
   filename?: true
   content?: true
+  url?: true
   metadata?: true
   createdAt?: true
   _all?: true
@@ -147,6 +153,7 @@ export type DocumentGroupByOutputType = {
   id: string
   filename: string
   content: string
+  url: string | null
   metadata: runtime.JsonValue | null
   createdAt: Date
   _count: DocumentCountAggregateOutputType | null
@@ -176,6 +183,7 @@ export type DocumentWhereInput = {
   id?: Prisma.StringFilter<"Document"> | string
   filename?: Prisma.StringFilter<"Document"> | string
   content?: Prisma.StringFilter<"Document"> | string
+  url?: Prisma.StringNullableFilter<"Document"> | string | null
   metadata?: Prisma.JsonNullableFilter<"Document">
   createdAt?: Prisma.DateTimeFilter<"Document"> | Date | string
   embeddings?: Prisma.EmbeddingListRelationFilter
@@ -186,6 +194,7 @@ export type DocumentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   filename?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  url?: Prisma.SortOrderInput | Prisma.SortOrder
   metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   embeddings?: Prisma.EmbeddingOrderByRelationAggregateInput
@@ -199,6 +208,7 @@ export type DocumentWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.DocumentWhereInput | Prisma.DocumentWhereInput[]
   filename?: Prisma.StringFilter<"Document"> | string
   content?: Prisma.StringFilter<"Document"> | string
+  url?: Prisma.StringNullableFilter<"Document"> | string | null
   metadata?: Prisma.JsonNullableFilter<"Document">
   createdAt?: Prisma.DateTimeFilter<"Document"> | Date | string
   embeddings?: Prisma.EmbeddingListRelationFilter
@@ -209,6 +219,7 @@ export type DocumentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   filename?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  url?: Prisma.SortOrderInput | Prisma.SortOrder
   metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.DocumentCountOrderByAggregateInput
@@ -223,6 +234,7 @@ export type DocumentScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Document"> | string
   filename?: Prisma.StringWithAggregatesFilter<"Document"> | string
   content?: Prisma.StringWithAggregatesFilter<"Document"> | string
+  url?: Prisma.StringNullableWithAggregatesFilter<"Document"> | string | null
   metadata?: Prisma.JsonNullableWithAggregatesFilter<"Document">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Document"> | Date | string
 }
@@ -231,6 +243,7 @@ export type DocumentCreateInput = {
   id?: string
   filename: string
   content: string
+  url?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   embeddings?: Prisma.EmbeddingCreateNestedManyWithoutDocumentInput
@@ -241,6 +254,7 @@ export type DocumentUncheckedCreateInput = {
   id?: string
   filename: string
   content: string
+  url?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   embeddings?: Prisma.EmbeddingUncheckedCreateNestedManyWithoutDocumentInput
@@ -251,6 +265,7 @@ export type DocumentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   filename?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   embeddings?: Prisma.EmbeddingUpdateManyWithoutDocumentNestedInput
@@ -261,6 +276,7 @@ export type DocumentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   filename?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   embeddings?: Prisma.EmbeddingUncheckedUpdateManyWithoutDocumentNestedInput
@@ -271,6 +287,7 @@ export type DocumentCreateManyInput = {
   id?: string
   filename: string
   content: string
+  url?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -279,6 +296,7 @@ export type DocumentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   filename?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -287,6 +305,7 @@ export type DocumentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   filename?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -295,6 +314,7 @@ export type DocumentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   filename?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  url?: Prisma.SortOrder
   metadata?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -303,6 +323,7 @@ export type DocumentMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   filename?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  url?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -310,12 +331,17 @@ export type DocumentMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   filename?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  url?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type DocumentScalarRelationFilter = {
   is?: Prisma.DocumentWhereInput
   isNot?: Prisma.DocumentWhereInput
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
 }
 
 export type DocumentCreateNestedOneWithoutChatsInput = {
@@ -350,6 +376,7 @@ export type DocumentCreateWithoutChatsInput = {
   id?: string
   filename: string
   content: string
+  url?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   embeddings?: Prisma.EmbeddingCreateNestedManyWithoutDocumentInput
@@ -359,6 +386,7 @@ export type DocumentUncheckedCreateWithoutChatsInput = {
   id?: string
   filename: string
   content: string
+  url?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   embeddings?: Prisma.EmbeddingUncheckedCreateNestedManyWithoutDocumentInput
@@ -384,6 +412,7 @@ export type DocumentUpdateWithoutChatsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   filename?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   embeddings?: Prisma.EmbeddingUpdateManyWithoutDocumentNestedInput
@@ -393,6 +422,7 @@ export type DocumentUncheckedUpdateWithoutChatsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   filename?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   embeddings?: Prisma.EmbeddingUncheckedUpdateManyWithoutDocumentNestedInput
@@ -402,6 +432,7 @@ export type DocumentCreateWithoutEmbeddingsInput = {
   id?: string
   filename: string
   content: string
+  url?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   chats?: Prisma.ChatDocumentCreateNestedManyWithoutDocumentInput
@@ -411,6 +442,7 @@ export type DocumentUncheckedCreateWithoutEmbeddingsInput = {
   id?: string
   filename: string
   content: string
+  url?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   chats?: Prisma.ChatDocumentUncheckedCreateNestedManyWithoutDocumentInput
@@ -436,6 +468,7 @@ export type DocumentUpdateWithoutEmbeddingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   filename?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chats?: Prisma.ChatDocumentUpdateManyWithoutDocumentNestedInput
@@ -445,6 +478,7 @@ export type DocumentUncheckedUpdateWithoutEmbeddingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   filename?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chats?: Prisma.ChatDocumentUncheckedUpdateManyWithoutDocumentNestedInput
@@ -494,6 +528,7 @@ export type DocumentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   id?: boolean
   filename?: boolean
   content?: boolean
+  url?: boolean
   metadata?: boolean
   createdAt?: boolean
   embeddings?: boolean | Prisma.Document$embeddingsArgs<ExtArgs>
@@ -505,6 +540,7 @@ export type DocumentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   id?: boolean
   filename?: boolean
   content?: boolean
+  url?: boolean
   metadata?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["document"]>
@@ -513,6 +549,7 @@ export type DocumentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   id?: boolean
   filename?: boolean
   content?: boolean
+  url?: boolean
   metadata?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["document"]>
@@ -521,11 +558,12 @@ export type DocumentSelectScalar = {
   id?: boolean
   filename?: boolean
   content?: boolean
+  url?: boolean
   metadata?: boolean
   createdAt?: boolean
 }
 
-export type DocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "filename" | "content" | "metadata" | "createdAt", ExtArgs["result"]["document"]>
+export type DocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "filename" | "content" | "url" | "metadata" | "createdAt", ExtArgs["result"]["document"]>
 export type DocumentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   embeddings?: boolean | Prisma.Document$embeddingsArgs<ExtArgs>
   chats?: boolean | Prisma.Document$chatsArgs<ExtArgs>
@@ -544,6 +582,7 @@ export type $DocumentPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     id: string
     filename: string
     content: string
+    url: string | null
     metadata: runtime.JsonValue | null
     createdAt: Date
   }, ExtArgs["result"]["document"]>
@@ -974,6 +1013,7 @@ export interface DocumentFieldRefs {
   readonly id: Prisma.FieldRef<"Document", 'String'>
   readonly filename: Prisma.FieldRef<"Document", 'String'>
   readonly content: Prisma.FieldRef<"Document", 'String'>
+  readonly url: Prisma.FieldRef<"Document", 'String'>
   readonly metadata: Prisma.FieldRef<"Document", 'Json'>
   readonly createdAt: Prisma.FieldRef<"Document", 'DateTime'>
 }
