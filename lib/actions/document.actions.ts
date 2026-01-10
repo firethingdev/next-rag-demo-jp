@@ -16,6 +16,13 @@ export interface Document {
   };
 }
 
+export interface DocumentMetadata {
+  size?: number;
+  type?: string;
+  url?: string;
+  [key: string]: unknown;
+}
+
 /**
  * Fetch documents
  * @param chatId - If provided, returns documents connected to this chat.
@@ -65,6 +72,21 @@ export async function uploadDocument(formData: FormData): Promise<Document> {
       throw new Error('No file provided');
     }
 
+    // Single file upload size limit: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('File size exceeds 10MB limit');
+    }
+
+    // Check usage limits before processing
+    // We'll import getUsageState dynamically or just implement checks here to avoid circular dependencies
+    // For simplicity, let's just check storage here and we'll check credits in a separate action if needed
+    // But the prompt says "Limit a single file upload size to 10MB" and "When total file size is greater than 200MB, disable upload buttons"
+    // So we should also check the total size here as a safeguard.
+    const totalBytes = await getTotalFileSize();
+    if (totalBytes + file.size > 200 * 1024 * 1024) {
+      throw new Error('Storage limit reached (200MB)');
+    }
+
     // Read file content
     const content = await extractTextFromFile(file);
 
@@ -109,7 +131,39 @@ export async function uploadDocument(formData: FormData): Promise<Document> {
     return document as Document;
   } catch (error) {
     console.error('Error uploading document:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error('Failed to upload document');
+  }
+}
+
+/**
+ * Get total file size of all documents
+ */
+export async function getTotalFileSize(): Promise<number> {
+  try {
+    const documents = await prisma.document.findMany({
+      select: { metadata: true },
+    });
+
+    let totalSize = 0;
+    for (const doc of documents) {
+      if (
+        doc.metadata &&
+        typeof doc.metadata === 'object' &&
+        !Array.isArray(doc.metadata)
+      ) {
+        const metadata = doc.metadata as DocumentMetadata;
+        if (typeof metadata.size === 'number') {
+          totalSize += metadata.size;
+        }
+      }
+    }
+    return totalSize;
+  } catch (error) {
+    console.error('Error calculating total file size:', error);
+    return 0;
   }
 }
 

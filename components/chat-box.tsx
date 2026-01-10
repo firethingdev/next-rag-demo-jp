@@ -46,6 +46,12 @@ import { uploadDocument } from '@/lib/actions/document.actions';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/components/app-layout';
+import { useUsage } from '@/components/usage-context';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ChatBoxProps {
   chatId: string | null;
@@ -66,6 +72,7 @@ export function ChatBox({
   const [input, setInput] = useState('');
   const router = useRouter();
   const { leftOpen, rightOpen, toggleLeft, toggleRight } = useSidebar();
+  const { isCreditLimitReached, isLimitReached } = useUsage();
 
   // Update currentTitle if initialTitle changes (e.g. on navigation)
   useEffect(() => {
@@ -173,6 +180,13 @@ export function ChatBox({
     const file = e.target.files?.[0];
     if (!file || !chatId) return;
 
+    // Single file upload size limit: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds 10MB limit');
+      e.target.value = '';
+      return;
+    }
+
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -185,7 +199,9 @@ export function ChatBox({
       toast.success('Document uploaded successfully');
     } catch (error) {
       console.error('Failed to upload document:', error);
-      toast.error('Failed to upload document');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to upload document',
+      );
     } finally {
       setIsUploading(false);
       e.target.value = '';
@@ -362,43 +378,78 @@ export function ChatBox({
           >
             <PromptInputBody>
               <PromptInputTextarea
-                placeholder='Type your message...'
+                placeholder={
+                  isCreditLimitReached
+                    ? 'Usage limit reached...'
+                    : 'Type your message...'
+                }
                 onChange={(e) => setInput(e.target.value)}
                 value={input}
+                disabled={isCreditLimitReached}
               />
             </PromptInputBody>
             <PromptInputFooter>
               <PromptInputTools>
-                <label className='cursor-pointer'>
-                  <input
-                    type='file'
-                    className='hidden'
-                    accept='.txt,.md,.json,.pdf'
-                    onChange={handleDocumentUpload}
-                    disabled={isUploading}
-                  />
-                  <div
-                    className={cn(
-                      'flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                      isUploading && 'opacity-50 cursor-not-allowed',
-                    )}
-                  >
-                    {isUploading ? (
-                      <Loader2 className='h-4 w-4 animate-spin' />
-                    ) : (
-                      <Upload className='h-4 w-4' />
-                    )}
-                  </div>
-                </label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <label
+                      className={cn(
+                        'cursor-pointer',
+                        (isUploading || isLimitReached) &&
+                          'opacity-50 cursor-not-allowed',
+                      )}
+                    >
+                      <input
+                        type='file'
+                        className='hidden'
+                        accept='.txt,.md,.json,.pdf'
+                        onChange={handleDocumentUpload}
+                        disabled={isUploading || isLimitReached}
+                      />
+                      <div
+                        className={cn(
+                          'flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                          (isUploading || isLimitReached) &&
+                            'pointer-events-none',
+                        )}
+                      >
+                        {isUploading ? (
+                          <Loader2 className='h-4 w-4 animate-spin' />
+                        ) : (
+                          <Upload className='h-4 w-4' />
+                        )}
+                      </div>
+                    </label>
+                  </TooltipTrigger>
+                  {isLimitReached && (
+                    <TooltipContent side='top'>
+                      Usage limit reached so chatting and file uploading are
+                      disabled.
+                    </TooltipContent>
+                  )}
+                </Tooltip>
               </PromptInputTools>
-              <PromptInputSubmit
-                disabled={
-                  !input.trim() ||
-                  status === 'submitted' ||
-                  status === 'streaming'
-                }
-                status={status}
-              />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <PromptInputSubmit
+                      disabled={
+                        !input.trim() ||
+                        status === 'submitted' ||
+                        status === 'streaming' ||
+                        isCreditLimitReached
+                      }
+                      status={status}
+                    />
+                  </span>
+                </TooltipTrigger>
+                {isCreditLimitReached && (
+                  <TooltipContent side='top'>
+                    Usage limit reached so chatting and file uploading are
+                    disabled.
+                  </TooltipContent>
+                )}
+              </Tooltip>
             </PromptInputFooter>
           </PromptInput>
         </div>

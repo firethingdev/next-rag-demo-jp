@@ -27,6 +27,13 @@ import {
   addDocumentToChat,
   removeDocumentFromChat,
 } from '@/lib/actions/document.actions';
+import { useUsage } from '@/components/usage-context';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface Document {
   id: string;
@@ -53,6 +60,7 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
   const [chatDocuments, setChatDocuments] = useState<Document[]>([]);
   const [globalDocuments, setGlobalDocuments] = useState<Document[]>([]);
   const [uploading, setUploading] = useState(false);
+  const { isLimitReached } = useUsage();
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -93,6 +101,13 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Single file upload size limit: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds 10MB limit');
+      e.target.value = '';
+      return;
+    }
+
     setUploading(true);
     try {
       const formData = new FormData();
@@ -104,7 +119,9 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('Failed to upload file:', error);
-      toast.error('Failed to upload file');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to upload file',
+      );
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -149,25 +166,49 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
     <div className='flex flex-col h-full border-l bg-muted/10'>
       <div className='p-4 border-b flex items-center justify-between'>
         <h2 className='font-semibold text-sm'>Knowledge Base</h2>
-        <label>
-          <input
-            type='file'
-            className='hidden'
-            accept='.txt,.md,.json,.pdf'
-            onChange={handleFileUpload}
-            disabled={uploading}
-          />
-          <Button size='sm' variant='outline' className='h-7 text-xs' asChild>
-            <span className='cursor-pointer'>
-              {uploading ? (
-                <Loader2 className='w-3 h-3 mr-1 animate-spin' />
-              ) : (
-                <Upload className='w-3 h-3 mr-1' />
-              )}
-              Upload
-            </span>
-          </Button>
-        </label>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <label>
+              <input
+                type='file'
+                className='hidden'
+                accept='.txt,.md,.json,.pdf'
+                onChange={handleFileUpload}
+                disabled={uploading || isLimitReached}
+              />
+              <Button
+                size='sm'
+                variant='outline'
+                className={cn(
+                  'h-7 text-xs',
+                  (uploading || isLimitReached) &&
+                    'opacity-50 cursor-not-allowed',
+                )}
+                asChild
+              >
+                <span
+                  className={cn(
+                    uploading || isLimitReached
+                      ? 'pointer-events-none'
+                      : 'cursor-pointer',
+                  )}
+                >
+                  {uploading ? (
+                    <Loader2 className='w-3 h-3 mr-1 animate-spin' />
+                  ) : (
+                    <Upload className='w-3 h-3 mr-1' />
+                  )}
+                  Upload
+                </span>
+              </Button>
+            </label>
+          </TooltipTrigger>
+          {isLimitReached && (
+            <TooltipContent side='bottom'>
+              Usage limit reached so chatting and file uploading are disabled.
+            </TooltipContent>
+          )}
+        </Tooltip>
       </div>
 
       <ScrollArea className='flex-1'>
