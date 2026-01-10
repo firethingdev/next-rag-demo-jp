@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
@@ -19,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Upload, Plus, Minus, File, Trash2, Loader2 } from 'lucide-react';
+import { Upload, File, Trash2, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
   getDocuments,
@@ -90,10 +89,7 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
     };
   }, [fetchDocuments]);
 
-  const handleFileUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    isGlobal: boolean,
-  ) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -101,9 +97,6 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      if (!isGlobal && chatId) {
-        formData.append('chatId', chatId);
-      }
 
       await uploadDocument(formData);
       await fetchDocuments();
@@ -130,234 +123,177 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
     }
   };
 
-  const handleAddToChat = async (docId: string) => {
-    if (!chatId) return;
-    try {
-      await addDocumentToChat(docId, chatId);
-      await fetchDocuments();
-      window.dispatchEvent(new CustomEvent('knowledge-base-updated'));
-      toast.success('Document added to chat');
-    } catch (error) {
-      console.error('Failed to add document to chat:', error);
-      toast.error('Failed to add document to chat');
+  const toggleDocumentInChat = async (docId: string, isInChat: boolean) => {
+    if (!chatId) {
+      toast.error('Select a chat first');
+      return;
     }
-  };
 
-  const handleRemoveFromChat = async (docId: string) => {
-    if (!chatId) return;
     try {
-      await removeDocumentFromChat(docId, chatId);
+      if (isInChat) {
+        await removeDocumentFromChat(docId, chatId);
+        toast.success('Removed from chat');
+      } else {
+        await addDocumentToChat(docId, chatId);
+        toast.success('Added to chat');
+      }
       await fetchDocuments();
       window.dispatchEvent(new CustomEvent('knowledge-base-updated'));
-      toast.success('Document removed from chat');
     } catch (error) {
-      console.error('Failed to remove document from chat:', error);
-      toast.error('Failed to remove document from chat');
+      console.error('Failed to update document status:', error);
+      toast.error('Failed to update document status');
     }
   };
 
   return (
     <div className='flex flex-col h-full border-l bg-muted/10'>
-      <div className='p-4 border-b'>
+      <div className='p-4 border-b flex items-center justify-between'>
         <h2 className='font-semibold text-sm'>Knowledge Base</h2>
+        <label>
+          <input
+            type='file'
+            className='hidden'
+            accept='.txt,.md,.json,.pdf'
+            onChange={handleFileUpload}
+            disabled={uploading}
+          />
+          <Button size='sm' variant='outline' className='h-7 text-xs' asChild>
+            <span className='cursor-pointer'>
+              {uploading ? (
+                <Loader2 className='w-3 h-3 mr-1 animate-spin' />
+              ) : (
+                <Upload className='w-3 h-3 mr-1' />
+              )}
+              Upload
+            </span>
+          </Button>
+        </label>
       </div>
 
-      {/* Chat-specific documents */}
-      <div className='flex-1 flex flex-col min-h-0'>
-        <div className='p-3 bg-muted/30'>
-          <div className='flex items-center justify-between mb-2'>
-            <h3 className='text-xs font-medium text-muted-foreground uppercase'>
-              Current Chat
-            </h3>
-          </div>
-        </div>
-
-        <ScrollArea className='flex-1'>
-          <div className='p-2 space-y-2'>
-            {!chatId ? (
-              <p className='text-xs text-muted-foreground text-center py-4'>
-                Select a chat to view its documents
+      <ScrollArea className='flex-1'>
+        <div className='p-4 space-y-4'>
+          {globalDocuments.length === 0 ? (
+            <div className='text-center py-12'>
+              <File className='w-8 h-8 text-muted-foreground/20 mx-auto mb-2' />
+              <p className='text-xs text-muted-foreground'>
+                No documents in knowledge base
               </p>
-            ) : chatDocuments.length === 0 ? (
-              <p className='text-xs text-muted-foreground text-center py-4'>
-                No documents in this chat
-              </p>
-            ) : (
-              chatDocuments.map((doc) => (
+            </div>
+          ) : (
+            globalDocuments.map((doc) => {
+              const isInChat = chatDocuments.some((cd) => cd.id === doc.id);
+              return (
                 <DocumentItem
                   key={doc.id}
                   document={doc}
-                  onRemove={() => handleRemoveFromChat(doc.id)}
-                  isInChat={true}
+                  isInChat={isInChat}
+                  chatId={chatId}
+                  onToggle={() => toggleDocumentInChat(doc.id, isInChat)}
+                  onDelete={() => handleDeleteDocument(doc.id)}
                 />
-              ))
-            )}
-          </div>
-        </ScrollArea>
-      </div>
-
-      <Separator />
-
-      {/* Global documents */}
-      <div className='flex flex-col h-1/2 min-h-0'>
-        <div className='p-3 bg-muted/30 border-t'>
-          <div className='flex items-center justify-between mb-2'>
-            <h3 className='text-xs font-medium text-muted-foreground uppercase'>
-              Global Files
-            </h3>
-            <label>
-              <input
-                type='file'
-                className='hidden'
-                accept='.txt,.md,.json,.pdf'
-                onChange={(e) => handleFileUpload(e, true)}
-                disabled={uploading}
-              />
-              <Button
-                size='sm'
-                variant='outline'
-                className='h-7 text-xs'
-                asChild
-              >
-                <span>
-                  {uploading ? (
-                    <Loader2 className='w-3 h-3 mr-1 animate-spin' />
-                  ) : (
-                    <Upload className='w-3 h-3 mr-1' />
-                  )}
-                  Upload
-                </span>
-              </Button>
-            </label>
-          </div>
+              );
+            })
+          )}
         </div>
-
-        <ScrollArea className='flex-1'>
-          <div className='p-2 space-y-2'>
-            {globalDocuments.filter(
-              (doc) => !chatDocuments.some((cd) => cd.id === doc.id),
-            ).length === 0 ? (
-              <p className='text-xs text-muted-foreground text-center py-4'>
-                No global documents yet
-              </p>
-            ) : (
-              globalDocuments
-                .filter((doc) => !chatDocuments.some((cd) => cd.id === doc.id))
-                .map((doc) => (
-                  <DocumentItem
-                    key={doc.id}
-                    document={doc}
-                    onDelete={() => handleDeleteDocument(doc.id)}
-                    onAdd={() => handleAddToChat(doc.id)}
-                    showAddButton={!!chatId}
-                  />
-                ))
-            )}
-          </div>
-        </ScrollArea>
-      </div>
+      </ScrollArea>
     </div>
   );
 }
 
 function DocumentItem({
   document,
-  onDelete,
-  onAdd,
-  onRemove,
   isInChat,
-  showAddButton,
+  chatId,
+  onToggle,
+  onDelete,
 }: {
   document: Document;
-  onDelete?: () => void;
-  onAdd?: () => void;
-  onRemove?: () => void;
-  isInChat?: boolean;
-  showAddButton?: boolean;
+  isInChat: boolean;
+  chatId: string | null;
+  onToggle: () => void;
+  onDelete: () => void;
 }) {
   return (
-    <Card className={`p-2 ${isInChat ? 'border-primary/50 bg-primary/5' : ''}`}>
-      <div className='flex items-start gap-2'>
-        <File className='w-4 h-4 text-muted-foreground shrink-0 mt-0.5' />
+    <Card
+      className={`p-3 transition-all ${isInChat ? 'border-primary/50 bg-primary/2' : 'hover:bg-muted/50'}`}
+    >
+      <div className='flex items-start gap-3'>
+        <div className='flex items-center h-5 mt-0.5'>
+          <input
+            type='checkbox'
+            checked={isInChat}
+            onChange={onToggle}
+            disabled={!chatId}
+            className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer disabled:cursor-not-allowed'
+          />
+        </div>
         <div className='flex-1 min-w-0'>
-          {document.url ? (
-            <a
-              href={document.url}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-xs font-medium truncate hover:underline hover:text-primary cursor-pointer block'
+          <div className='flex items-center justify-between gap-2'>
+            <div className='flex items-center gap-2 min-w-0'>
+              <File className='w-4 h-4 text-muted-foreground shrink-0' />
+              {document.url ? (
+                <a
+                  href={document.url}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-xs font-medium truncate hover:underline hover:text-primary cursor-pointer'
+                >
+                  {document.filename}
+                </a>
+              ) : (
+                <span className='text-xs font-medium truncate'>
+                  {document.filename}
+                </span>
+              )}
+            </div>
+
+            <div className='flex items-center gap-1 shrink-0'>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className='h-6 w-6 text-muted-foreground hover:text-destructive'
+                    title='Delete from global library'
+                  >
+                    <Trash2 className='w-3 h-3' />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will PERMANENTLY delete &quot;{document.filename}
+                      &quot; and all its embeddings.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={onDelete}
+                      className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+
+          <div className='flex items-center gap-2 mt-1.5'>
+            <Badge
+              variant='secondary'
+              className='text-[10px] h-4 px-1 font-normal opacity-70'
             >
-              {document.filename}
-            </a>
-          ) : (
-            <p className='text-xs font-medium truncate'>{document.filename}</p>
-          )}
-          <div className='flex items-center gap-2 mt-1'>
-            <Badge variant='secondary' className='text-[10px] h-4 px-1'>
               {document._count?.embeddings || 0} chunks
             </Badge>
-            <span className='text-[10px] text-muted-foreground'>
+            <span className='text-[10px] text-muted-foreground opacity-70'>
               {formatDistanceToNow(new Date(document.createdAt), {
                 addSuffix: true,
               })}
             </span>
           </div>
-        </div>
-        <div className='flex items-center gap-1'>
-          {showAddButton && (
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-6 w-6 shrink-0'
-              onClick={onAdd}
-              title='Add to current chat'
-            >
-              <Plus className='w-3 h-3' />
-            </Button>
-          )}
-          {onRemove && (
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-6 w-6 shrink-0'
-              onClick={onRemove}
-              title='Remove from current chat'
-            >
-              <Minus className='w-3 h-3' />
-            </Button>
-          )}
-          {onDelete && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='h-6 w-6 shrink-0'
-                  title='Delete from global library'
-                >
-                  <Trash2 className='w-3 h-3 text-destructive' />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will PERMANENTLY delete &quot;{document.filename}&quot;
-                    from the global library and ALL chats that reference it.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={onDelete}
-                    className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                  >
-                    Delete Everywhere
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
         </div>
       </div>
     </Card>
