@@ -32,6 +32,8 @@ import {
   X,
   Upload,
   Loader2,
+  PanelLeft,
+  PanelRight,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
@@ -43,6 +45,7 @@ import {
 import { uploadDocument } from '@/lib/actions/document.actions';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useSidebar } from '@/components/app-layout';
 
 interface ChatBoxProps {
   chatId: string | null;
@@ -62,6 +65,7 @@ export function ChatBox({
   const [isUploading, setIsUploading] = useState(false);
   const [input, setInput] = useState('');
   const router = useRouter();
+  const { leftOpen, rightOpen, toggleLeft, toggleRight } = useSidebar();
 
   // Update currentTitle if initialTitle changes (e.g. on navigation)
   useEffect(() => {
@@ -204,11 +208,20 @@ export function ChatBox({
 
   return (
     <div className='flex flex-col h-screen bg-background'>
-      <div className='sticky top-0 z-10 flex items-center justify-between px-6 py-3 border-b bg-background/80 backdrop-blur-md'>
-        <div className='flex items-center gap-3 flex-1 min-w-0'>
-          <div className='p-2 rounded-lg bg-primary/10 text-primary shrink-0'>
-            <MessageSquare className='w-4 h-4' />
-          </div>
+      <div className='sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur-md'>
+        <div className='flex items-center gap-2 flex-1 min-w-0'>
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={toggleLeft}
+            className={cn(
+              'h-8 w-8 shrink-0',
+              !leftOpen && 'text-primary bg-primary/10',
+            )}
+          >
+            <PanelLeft className='w-4 h-4' />
+          </Button>
+
           {isEditingTitle ? (
             <div className='flex items-center gap-2 flex-1 max-w-md'>
               <Input
@@ -227,7 +240,7 @@ export function ChatBox({
               <Button
                 size='icon'
                 variant='ghost'
-                className='h-8 w-8 text-green-600'
+                className='h-8 w-8 text-green-600 shrink-0'
                 onClick={handleTitleUpdate}
               >
                 <Check className='w-4 h-4' />
@@ -235,7 +248,7 @@ export function ChatBox({
               <Button
                 size='icon'
                 variant='ghost'
-                className='h-8 w-8 text-red-600'
+                className='h-8 w-8 text-red-600 shrink-0'
                 onClick={() => {
                   setIsEditingTitle(false);
                   setEditTitleValue(currentTitle || '');
@@ -245,51 +258,62 @@ export function ChatBox({
               </Button>
             </div>
           ) : (
-            <div className='flex items-center gap-2 overflow-hidden'>
+            <div className='flex items-center gap-1 overflow-hidden group'>
               <h1
-                className='font-semibold text-lg truncate cursor-pointer hover:text-primary transition-colors'
+                className='font-semibold text-sm sm:text-base truncate cursor-pointer hover:text-primary transition-colors'
                 onClick={() => setIsEditingTitle(true)}
               >
                 {currentTitle || 'New Conversation'}
               </h1>
-              <div className='flex items-center gap-1 shrink-0'>
-                <Button
-                  size='icon'
-                  variant='ghost'
-                  className='h-8 w-8 text-muted-foreground hover:text-primary'
-                  onClick={() => setIsEditingTitle(true)}
-                  title='Edit title'
-                >
-                  <Edit2 className='w-3 h-3' />
-                </Button>
-                {messages.length >= 2 && (
-                  <Button
-                    size='icon'
-                    variant='ghost'
-                    className='h-8 w-8 text-muted-foreground hover:text-primary'
-                    onClick={handleRegenerateTitle}
-                    disabled={isRegenerating}
-                    title='Regenerate title'
-                  >
-                    <RefreshCw
-                      className={`w-3.5 h-3.5 ${isRegenerating ? 'animate-spin' : ''}`}
-                    />
-                  </Button>
-                )}
-              </div>
+              <Button
+                size='icon'
+                variant='ghost'
+                className='h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 hidden sm:flex'
+                onClick={() => setIsEditingTitle(true)}
+              >
+                <Edit2 className='w-3 h-3' />
+              </Button>
             </div>
           )}
         </div>
 
-        <div className='flex items-center gap-2 ml-4'>
+        <div className='flex items-center gap-1 sm:gap-2'>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={handleRegenerateTitle}
+            disabled={isRegenerating || messages.length < 2}
+            className='h-8 px-2 text-[10px] sm:text-xs'
+          >
+            <RefreshCw
+              className={cn(
+                'w-3 h-3 sm:mr-2',
+                isRegenerating && 'animate-spin',
+              )}
+            />
+            <span className='hidden sm:inline'>
+              {isRegenerating ? 'Generating...' : 'Regenerate Title'}
+            </span>
+          </Button>
           <Button
             size='icon'
             variant='ghost'
-            className='h-8 w-8 text-muted-foreground hover:text-destructive'
+            className='h-8 w-8 text-muted-foreground hover:text-destructive shrink-0 hidden sm:flex'
             onClick={() => router.push('/')}
             title='Close chat'
           >
             <X className='w-4 h-4' />
+          </Button>
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={toggleRight}
+            className={cn(
+              'h-8 w-8 shrink-0',
+              !rightOpen && 'text-primary bg-primary/10',
+            )}
+          >
+            <PanelRight className='w-4 h-4' />
           </Button>
         </div>
       </div>
