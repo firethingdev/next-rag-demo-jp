@@ -11,15 +11,18 @@ export interface ProcessedDocument {
 const textSplitter = new RecursiveCharacterTextSplitter({
   chunkSize: 1000,
   chunkOverlap: 200,
-  separators: ['\n\n', '\n', '. ', ' ', ''],
+  separators: ['\n\n', '\n', '。', '、', ' ', ''],
 });
 
+/**
+ * ドキュメントを処理してチャンクに分割
+ */
 export async function processDocument(
   filename: string,
   content: string,
   metadata?: Record<string, unknown>,
 ): Promise<ProcessedDocument> {
-  // Split the document into chunks
+  // ドキュメントをチャンクに分割
   const chunks = await textSplitter.splitText(content);
 
   return {
@@ -30,6 +33,9 @@ export async function processDocument(
   };
 }
 
+/**
+ * ファイルからテキストを抽出
+ */
 export async function extractTextFromFile(file: File): Promise<string> {
   if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
     const loader = new PDFLoader(file);
@@ -37,6 +43,6 @@ export async function extractTextFromFile(file: File): Promise<string> {
     return docs.map((doc) => doc.pageContent).join('\n');
   }
 
-  // Fallback to reading as text (works for .txt, .md, etc.)
+  // テキスト形式として読み込む（.txt, .mdなどに対応）
   return await file.text();
 }

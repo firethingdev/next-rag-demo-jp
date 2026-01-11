@@ -25,7 +25,7 @@ export interface ChatWithMessages extends Chat {
 }
 
 /**
- * Fetch all chats with message counts
+ * メッセージ数を含むすべてのチャットを取得
  */
 export async function getChats(): Promise<Chat[]> {
   try {
@@ -40,19 +40,19 @@ export async function getChats(): Promise<Chat[]> {
 
     return chats;
   } catch (error) {
-    console.error('Error fetching chats:', error);
-    throw new Error('Failed to fetch chats');
+    console.error('チャット取得エラー:', error);
+    throw new Error('チャットの取得に失敗しました');
   }
 }
 
 /**
- * Create a new chat
+ * 新しいチャットを作成
  */
 export async function createChat(title?: string): Promise<Chat> {
   try {
     const chat = await prisma.chat.create({
       data: {
-        title: title || 'New Chat',
+        title: title || '新しいチャット',
       },
       include: {
         _count: {
@@ -64,13 +64,13 @@ export async function createChat(title?: string): Promise<Chat> {
     revalidatePath('/');
     return chat;
   } catch (error) {
-    console.error('Error creating chat:', error);
-    throw new Error('Failed to create chat');
+    console.error('チャット作成エラー:', error);
+    throw new Error('チャットの作成に失敗しました');
   }
 }
 
 /**
- * Get a specific chat with messages
+ * メッセージを含む特定のチャットを取得
  */
 export async function getChat(id: string): Promise<ChatWithMessages | null> {
   try {
@@ -88,13 +88,13 @@ export async function getChat(id: string): Promise<ChatWithMessages | null> {
 
     return chat;
   } catch (error) {
-    console.error('Error fetching chat:', error);
-    throw new Error('Failed to fetch chat');
+    console.error('チャット取得エラー:', error);
+    throw new Error('チャットの取得に失敗しました');
   }
 }
 
 /**
- * Delete a chat
+ * チャットを削除
  */
 export async function deleteChat(id: string): Promise<void> {
   try {
@@ -104,41 +104,45 @@ export async function deleteChat(id: string): Promise<void> {
 
     revalidatePath('/');
   } catch (error) {
-    console.error('Error deleting chat:', error);
-    throw new Error('Failed to delete chat');
+    console.error('チャット削除エラー:', error);
+    throw new Error('チャットの削除に失敗しました');
   }
 }
 
 /**
- * Generate a 3-5 word title for a chat based on its first messages
+ * 最初のメッセージに基づいて、チャットのタイトル（日本語で3〜10文字程度）を生成
  */
 export async function generateTitle(
   messages: { role: string; content: string }[],
 ): Promise<string> {
   try {
     const conversation = messages
-      .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .map(
+        (m) =>
+          `${m.role === 'user' ? 'ユーザー' : 'アシスタント'}: ${m.content}`,
+      )
       .join('\n');
 
-    const prompt = `Based on the following conversation, generate a concise, catchy 3-5 word title for this chat. Do not use quotes or special characters.
+    const prompt = `以下の会話内容に基づいて、このチャットにふさわしい簡潔で分かりやすいタイトルを日本語で生成してください。
+タイトルは10文字以内で、引用符や特殊記号は使用しないでください。
 
 ${conversation}`;
 
     const response = await aiModel.invoke([new HumanMessage(prompt)]);
 
     let title = response.content.toString().trim();
-    // Clean up title (remove quotes, etc.)
+    // タイトルのクリーンアップ（引用符などを削除）
     title = title.replace(/['"]+/g, '');
 
-    return title || 'New Chat';
+    return title || '新しいチャット';
   } catch (error) {
-    console.error('Error generating title:', error);
-    return 'New Chat';
+    console.error('タイトル生成エラー:', error);
+    return '新しいチャット';
   }
 }
 
 /**
- * Save a new chat with its initial messages
+ * 初期メッセージとともに新しいチャットを保存
  */
 export async function saveChatWithMessages(
   id: string,
@@ -167,13 +171,13 @@ export async function saveChatWithMessages(
     revalidatePath('/');
     return chat;
   } catch (error) {
-    console.error('Error saving chat with messages:', error);
-    throw new Error('Failed to save chat');
+    console.error('メッセージ付きチャット保存エラー:', error);
+    throw new Error('チャットの保存に失敗しました');
   }
 }
 
 /**
- * Save a single message to an existing chat
+ * 既存のチャットに単一のメッセージを保存
  */
 export async function saveMessage(
   chatId: string,
@@ -197,13 +201,13 @@ export async function saveMessage(
 
     revalidatePath('/');
   } catch (error) {
-    console.error('Error saving message:', error);
-    throw new Error('Failed to save message');
+    console.error('メッセージ保存エラー:', error);
+    throw new Error('メッセージの保存に失敗しました');
   }
 }
 
 /**
- * Update a chat's title
+ * チャットのタイトルを更新
  */
 export async function updateChatTitle(
   id: string,
@@ -217,7 +221,7 @@ export async function updateChatTitle(
 
     revalidatePath('/');
   } catch (error) {
-    console.error('Error updating chat title:', error);
-    throw new Error('Failed to update chat title');
+    console.error('チャットタイトル更新エラー:', error);
+    throw new Error('チャットタイトルの更新に失敗しました');
   }
 }

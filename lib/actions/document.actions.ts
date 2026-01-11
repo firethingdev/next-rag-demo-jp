@@ -24,12 +24,9 @@ export interface DocumentMetadata {
 }
 
 /**
- * Fetch documents
- * @param chatId - If provided, returns documents connected to this chat.
- *                If 'global', returns all global documents (not connected to any chat - wait, the request says ALL docs are global).
- *                Actually, let's make it:
- *                - if chatId is provided: return documents connected to that chat.
- *                - if chatId is null/undefined: return all documents (since they are all global).
+ * ドキュメントを取得
+ * @param chatId - 指定された場合、そのチャットに関連付けられたドキュメントを返します。
+ *                指定されない場合は、すべてのドキュメント（グローバル）を返します。
  */
 export async function getDocuments(
   chatId?: string | null,
@@ -55,13 +52,13 @@ export async function getDocuments(
 
     return documents as Document[];
   } catch (error) {
-    console.error('Error fetching documents:', error);
-    throw new Error('Failed to fetch documents');
+    console.error('ドキュメント取得エラー:', error);
+    throw new Error('ドキュメントの取得に失敗しました');
   }
 }
 
 /**
- * Upload and process a document
+ * ドキュメントのアップロードと処理
  */
 export async function uploadDocument(formData: FormData): Promise<Document> {
   try {
@@ -69,40 +66,36 @@ export async function uploadDocument(formData: FormData): Promise<Document> {
     const chatId = formData.get('chatId') as string | null;
 
     if (!file) {
-      throw new Error('No file provided');
+      throw new Error('ファイルが提供されていません');
     }
 
-    // Single file upload size limit: 10MB
+    // 単一ファイルのアップロード制限: 10MB
     if (file.size > 10 * 1024 * 1024) {
-      throw new Error('File size exceeds 10MB limit');
+      throw new Error('ファイルサイズが10MBの制限を超えています');
     }
 
-    // Check usage limits before processing
-    // We'll import getUsageState dynamically or just implement checks here to avoid circular dependencies
-    // For simplicity, let's just check storage here and we'll check credits in a separate action if needed
-    // But the prompt says "Limit a single file upload size to 10MB" and "When total file size is greater than 200MB, disable upload buttons"
-    // So we should also check the total size here as a safeguard.
+    // 処理前に利用制限を確認
     const totalBytes = await getTotalFileSize();
     if (totalBytes + file.size > 200 * 1024 * 1024) {
-      throw new Error('Storage limit reached (200MB)');
+      throw new Error('ストレージ容量の上限（200MB）に達しました');
     }
 
-    // Read file content
+    // ファイル内容の抽出
     const content = await extractTextFromFile(file);
 
-    // Upload to Vercel Blob
+    // Vercel Blobへアップロード
     const blob = await put(file.name, file, {
       access: 'public',
     });
 
-    // Process document (chunk it)
+    // ドキュメントの処理（チャンク分割）
     const processed = await processDocument(file.name, content, {
       size: file.size,
       type: file.type,
       url: blob.url,
     });
 
-    // Store document in database
+    // データベースにドキュメントを保存
     const document = await prisma.document.create({
       data: {
         filename: processed.filename,
@@ -124,22 +117,22 @@ export async function uploadDocument(formData: FormData): Promise<Document> {
       },
     });
 
-    // Generate and store embeddings
+    // 埋め込みベクトルの生成と保存
     await storeEmbeddings(document.id, processed.chunks);
 
     revalidatePath('/');
     return document as Document;
   } catch (error) {
-    console.error('Error uploading document:', error);
+    console.error('ドキュメントアップロードエラー:', error);
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Failed to upload document');
+    throw new Error('ドキュメントのアップロードに失敗しました');
   }
 }
 
 /**
- * Get total file size of all documents
+ * すべてのドキュメントの合計ファイルサイズを取得
  */
 export async function getTotalFileSize(): Promise<number> {
   try {
@@ -162,13 +155,13 @@ export async function getTotalFileSize(): Promise<number> {
     }
     return totalSize;
   } catch (error) {
-    console.error('Error calculating total file size:', error);
+    console.error('合計ファイルサイズ計算エラー:', error);
     return 0;
   }
 }
 
 /**
- * Delete a document
+ * ドキュメントを削除
  */
 export async function deleteDocument(id: string): Promise<void> {
   try {
@@ -187,13 +180,13 @@ export async function deleteDocument(id: string): Promise<void> {
 
     revalidatePath('/');
   } catch (error) {
-    console.error('Error deleting document:', error);
-    throw new Error('Failed to delete document');
+    console.error('ドキュメント削除エラー:', error);
+    throw new Error('ドキュメントの削除に失敗しました');
   }
 }
 
 /**
- * Add document to chat (create reference)
+ * ドキュメントをチャットに追加（参照作成）
  */
 export async function addDocumentToChat(
   id: string,
@@ -217,13 +210,13 @@ export async function addDocumentToChat(
     revalidatePath('/');
     return document as Document;
   } catch (error) {
-    console.error('Error adding document to chat:', error);
-    throw new Error('Failed to add document to chat');
+    console.error('ドキュメント追加エラー:', error);
+    throw new Error('チャットへのドキュメント追加に失敗しました');
   }
 }
 
 /**
- * Remove document from chat (delete reference)
+ * ドキュメントをチャットから削除（参照削除）
  */
 export async function removeDocumentFromChat(
   id: string,
@@ -252,7 +245,7 @@ export async function removeDocumentFromChat(
     revalidatePath('/');
     return document as Document;
   } catch (error) {
-    console.error('Error removing document from chat:', error);
-    throw new Error('Failed to remove document from chat');
+    console.error('ドキュメント解除エラー:', error);
+    throw new Error('チャットからのドキュメント解除に失敗しました');
   }
 }

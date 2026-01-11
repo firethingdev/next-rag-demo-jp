@@ -32,7 +32,7 @@ export function UsageProvider({ children }: { children: React.ReactNode }) {
       const newState = await getUsageState();
       setState(newState);
     } catch (error) {
-      console.error('Failed to refresh usage state:', error);
+      console.error('利用状況の更新に失敗しました:', error);
     } finally {
       setIsLoading(false);
     }
@@ -41,7 +41,7 @@ export function UsageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refreshUsage();
 
-    // Refresh usage on specific events
+    // 特定のイベント時に利用状況を更新
     const handleUpdate = () => refreshUsage();
     window.addEventListener('knowledge-base-updated', handleUpdate);
     window.addEventListener('chat-updated', handleUpdate);
@@ -62,7 +62,7 @@ export function UsageProvider({ children }: { children: React.ReactNode }) {
 export function useUsage() {
   const context = useContext(UsageContext);
   if (context === undefined) {
-    throw new Error('useUsage must be used within a UsageProvider');
+    throw new Error('useUsageはUsageProviderの中で使用する必要があります');
   }
   return context;
 }
