@@ -74,7 +74,7 @@ export const InlineCitationCardTrigger = ({
           {sources.length > 1 && `+${sources.length - 1}`}
         </>
       ) : (
-        'unknown'
+        '不明'
       )}
     </Badge>
   </HoverCardTrigger>
@@ -202,7 +202,7 @@ export const InlineCitationCarouselPrev = ({
 
   return (
     <button
-      aria-label='Previous'
+      aria-label='前へ'
       className={cn('shrink-0', className)}
       onClick={handleClick}
       type='button'
@@ -229,7 +229,7 @@ export const InlineCitationCarouselNext = ({
 
   return (
     <button
-      aria-label='Next'
+      aria-label='次へ'
       className={cn('shrink-0', className)}
       onClick={handleClick}
       type='button'

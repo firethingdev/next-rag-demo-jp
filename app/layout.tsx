@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Next RAG Demo',
+  title: 'Next RAG デモ',
   description:
-    'A demo application of retrieval augmented generation using Next.js, AI SDK and LangChain',
+    'Next.js、AI SDK、LangChainを使用した、検索拡張生成（RAG）のデモアプリケーション',
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html lang='ja' suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

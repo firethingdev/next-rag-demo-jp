@@ -4,7 +4,7 @@ import { PrismaVectorStore } from '@langchain/community/vectorstores/prisma';
 import { Embedding } from '@/generated/prisma/client';
 
 /**
- * Initialize the PrismaVectorStore
+ * PrismaVectorStoreの初期化
  */
 const vectorStore = PrismaVectorStore.withModel<Embedding>(prisma).create(
   embeddings,
@@ -20,7 +20,7 @@ const vectorStore = PrismaVectorStore.withModel<Embedding>(prisma).create(
 );
 
 /**
- * Generate embeddings for a given text using LangChain OpenAI embeddings via AI Gateway
+ * AI Gatewayを介したLangChainの埋め込みモデルを使用して、テキストのベクトルを生成
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   const embedding = await embeddings.embedQuery(text);
@@ -28,16 +28,15 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 /**
- * Store embeddings for document chunks in the database
- * @param documentId - The document ID to associate embeddings with
- * @param chunks - Array of text chunks from the document
+ * ドキュメントのチャンクと対応する埋め込みベクトルをデータベースに保存
+ * @param documentId - 関連付けるドキュメントのID
+ * @param chunks - ドキュメントから分割されたテキストチャンクの配列
  */
 export async function storeEmbeddings(
   documentId: string,
   chunks: string[],
 ): Promise<void> {
-  // First, create the Embedding records without the vectors
-  // We do this so we can then use addModels to update them with vectors
+  // 最初にベクトルなしでEmbeddingレコードを作成
   const embeddingModels = await prisma.$transaction(
     chunks.map((chunk, index) =>
       prisma.embedding.create({
@@ -50,22 +49,22 @@ export async function storeEmbeddings(
     ),
   );
 
-  // Use addModels to generate and store embeddings
+  // addModelsを使用してベクトルを生成・保存
   await vectorStore.addModels(embeddingModels);
 }
 
 /**
- * Search for similar document chunks using vector similarity
- * @param query - The search query text
- * @param chatId - The chat ID to search within (also includes global documents)
- * @param topK - Number of results to return (default from AI_CONFIG)
+ * ベクトル類似度を使用して類似したドキュメントチャンクを検索
+ * @param query - 検索クエリテキスト
+ * @param chatId - 検索対象のチャットID（グローバルドキュメントも含まれます）
+ * @param topK - 返す結果の数（デフォルトはAI_CONFIGから取得）
  */
 export async function searchSimilarChunks(
   query: string,
   chatId: string,
   topK: number = AI_CONFIG.topK,
 ) {
-  // First, get the IDs of documents that belong to this chat
+  // まず、このチャットに属するドキュメントのIDを取得
   const docs = await prisma.document.findMany({
     where: {
       chats: {
@@ -77,15 +76,15 @@ export async function searchSimilarChunks(
   const docIds = docs.map((d) => d.id);
   const filenameMap = Object.fromEntries(docs.map((d) => [d.id, d.filename]));
 
-  // Search for similar chunks using PrismaVectorStore's similaritySearch
-  // We filter by the document IDs we found
+  // PrismaVectorStoreのsimilaritySearchを使用して類似チャンクを検索
+  // 取得したドキュメントIDでフィルタリング
   const results = await vectorStore.similaritySearch(query, topK, {
     documentId: {
       in: docIds,
     },
   });
 
-  // Map results back to the expected format
+  // 結果を期待されるフォーマットに変換
   return results.map((result) => {
     const embedding = result.metadata as unknown as Embedding;
     return {
@@ -93,14 +92,14 @@ export async function searchSimilarChunks(
       chunkText: embedding.chunkText,
       chunkIndex: embedding.chunkIndex,
       documentId: embedding.documentId,
-      filename: filenameMap[embedding.documentId] || 'Unknown',
-      similarity: 1, // PrismaVectorStore doesn't return scores in similaritySearch result directly
+      filename: filenameMap[embedding.documentId] || '不明',
+      similarity: 1, // PrismaVectorStoreのsimilaritySearchは結果にスコアを直接含みません
     };
   });
 }
 
 /**
- * Format retrieved chunks into context for the LLM
+ * 取得したチャンクをLLM用のコンテキスト形式に整形
  */
 export async function formatContextForLLM(
   chunks: Array<{
@@ -128,17 +127,17 @@ export async function formatContextForLLM(
     {} as Record<string, typeof chunks>,
   );
 
-  // Format the context
+  // コンテキストのフォーマット
   const contextParts = [
-    "You have access to the following relevant information from the user's documents:",
+    'ユーザーのドキュメントから抽出された関連情報は以下の通りです：',
     '',
   ];
 
   for (const [filename, docChunks] of Object.entries(chunksByDocument)) {
-    contextParts.push(`## From: ${filename}`);
+    contextParts.push(`## 出典: ${filename}`);
     contextParts.push('');
 
-    // Sort chunks by index to maintain document order
+    // ドキュメントの順序を維持するためにインデックスでソート
     const sortedChunks = docChunks.sort((a, b) => a.chunkIndex - b.chunkIndex);
 
     for (const chunk of sortedChunks) {
@@ -151,7 +150,7 @@ export async function formatContextForLLM(
   }
 
   contextParts.push(
-    "Please use this information to answer the user's question. If the information is not relevant, you can ignore it.",
+    'これらの情報を使用してユーザーの質問に答えてください。情報が質問に関連しない場合は、無視して構いません。',
   );
 
   return contextParts.join('\n');

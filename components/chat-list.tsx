@@ -18,6 +18,7 @@ import {
 import { toast } from 'sonner';
 import { Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { ja } from 'date-fns/locale';
 import { getChats, createChat, deleteChat } from '@/lib/actions/chat.actions';
 
 interface Chat {
@@ -67,8 +68,8 @@ export function ChatList({ refreshTrigger }: ChatListProps) {
       const data = await getChats();
       setChats(data);
     } catch (error) {
-      console.error('Failed to fetch chats:', error);
-      toast.error('Failed to fetch chats');
+      console.error('チャットの取得に失敗しました:', error);
+      toast.error('チャットの読み込みに失敗しました');
     } finally {
       setLoading(false);
     }
@@ -76,13 +77,13 @@ export function ChatList({ refreshTrigger }: ChatListProps) {
 
   const handleCreateChat = async () => {
     try {
-      const newChat = await createChat('New Chat');
+      const newChat = await createChat('新しいチャット');
       setChats((prev) => [newChat, ...prev]);
       onSelectChat(newChat.id);
-      toast.success('Chat created');
+      toast.success('チャットを作成しました');
     } catch (error) {
-      console.error('Failed to create chat:', error);
-      toast.error('Failed to create chat');
+      console.error('チャットの作成に失敗しました:', error);
+      toast.error('チャットの作成に失敗しました');
     }
   };
 
@@ -93,10 +94,10 @@ export function ChatList({ refreshTrigger }: ChatListProps) {
       if (selectedChatId === chatId) {
         onSelectChat('');
       }
-      toast.success('Chat deleted');
+      toast.success('チャットを削除しました');
     } catch (error) {
-      console.error('Failed to delete chat:', error);
-      toast.error('Failed to delete chat');
+      console.error('チャットの削除に失敗しました:', error);
+      toast.error('チャットの削除に失敗しました');
     }
   };
 
@@ -105,18 +106,18 @@ export function ChatList({ refreshTrigger }: ChatListProps) {
       <div className='p-4 border-b'>
         <Button onClick={handleCreateChat} className='w-full' size='sm'>
           <Plus className='w-4 h-4 mr-2' />
-          New Chat
+          新しいチャット
         </Button>
       </div>
 
       <div className='p-2 space-y-2 h-full overflow-y-auto'>
         {loading ? (
           <div className='text-center text-sm text-muted-foreground p-4'>
-            Loading chats...
+            読み込み中...
           </div>
         ) : chats.length === 0 ? (
           <div className='text-center text-sm text-muted-foreground p-4'>
-            No chats yet. Create one to get started!
+            チャットがありません。新しいチャットを作成して始めましょう！
           </div>
         ) : (
           chats.map((chat) => (
@@ -136,9 +137,10 @@ export function ChatList({ refreshTrigger }: ChatListProps) {
                     </h3>
                   </div>
                   <p className='text-xs text-muted-foreground mt-1'>
-                    {chat._count?.messages || 0} messages •{' '}
+                    {chat._count?.messages || 0} 件のメッセージ •{' '}
                     {formatDistanceToNow(new Date(chat.updatedAt), {
                       addSuffix: true,
+                      locale: ja,
                     })}
                   </p>
                 </div>
@@ -155,20 +157,21 @@ export function ChatList({ refreshTrigger }: ChatListProps) {
                   </AlertDialogTrigger>
                   <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        チャットを削除しますか？
+                      </AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete the chat &quot;{chat.title}&quot; and all its
-                        messages.
+                        この操作は取り消せません。「{chat.title}
+                        」とそのすべてのメッセージが完全に削除されます。
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>キャンセル</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => handleDeleteChat(chat.id)}
                         className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
                       >
-                        Delete
+                        削除する
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

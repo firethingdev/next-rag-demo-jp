@@ -52,7 +52,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       value={{ leftOpen, rightOpen, toggleLeft, toggleRight }}
     >
       <div className='flex h-screen w-screen overflow-hidden bg-background'>
-        {/* Left Sidebar */}
+        {/* 左サイドバー */}
         <aside
           className={cn(
             'fixed inset-y-0 left-0 z-40 w-[300px] border-r bg-background transition-all duration-300 ease-in-out lg:relative overflow-hidden',
@@ -66,12 +66,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        {/* Main Content */}
+        {/* メインコンテンツ */}
         <main className='relative flex flex-1 flex-col overflow-hidden'>
           {children}
         </main>
 
-        {/* Right Sidebar */}
+        {/* 右サイドバー */}
         <aside
           className={cn(
             'fixed inset-y-0 right-0 z-40 w-[350px] border-l bg-background transition-all duration-300 ease-in-out lg:relative overflow-hidden',
@@ -85,7 +85,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        {/* Backdrop for mobile */}
+        {/* モバイル用バックドロップ */}
         {isMobile && (leftOpen || rightOpen) && (
           <div
             className='fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden transition-opacity duration-300'

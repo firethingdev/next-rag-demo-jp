@@ -1,34 +1,34 @@
-# Next.js RAG Demo
+# Next.js RAG デモ
 
-A high-performance Retrieval-Augmented Generation (RAG) demo application built with Next.js, LangChain, and Prisma. It demonstrates a complete AI chat experience with a persistent knowledge base and real-time document processing.
+Next.js、LangChain、Prisma を使用して構築された、ハイパフォーマンスな Retrieval-Augmented Generation (RAG) デモアプリケーションです。永続的なナレッジベースとリアルタイムのドキュメント処理を備えた、完全な AI チャット体験を提供します。
 
-## Basic Features
+## 主な機能
 
-- **Streaming RAG Chat**: Real-time context-aware responses using the Vercel AI SDK and Google Gemini.
-- **Dynamic Knowledge Base**: Upload and manage documents (PDF, TXT, MD) that can be accessed globally or specific to a chat.
-- **Advanced Document Processing**: Automatic chunking and vector embedding generation using LangChain and pgvector.
-- **Responsive 3-Column UI**: A modern interface with chat history, a streaming chat window, and a document attachment panel.
-- **Usage Limits & Credits**: Integrated usage monitoring via AI Gateway to manage credit balance and storage limits.
+- **ストリーミング RAG チャット**: Vercel AI SDK と Google Gemini を使用した、リアルタイムで文脈を考慮した応答。
+- **動的ナレッジベース**: ドキュメント（PDF、TXT、MARKDOWN）のアップロードと管理。グローバルまたは特定のチャットに限定してアクセス可能です。
+- **高度なドキュメント処理**: LangChain と pgvector を使用した自動チャンク分割およびベクトル埋め込み生成。
+- **レスポンシブな 3 カラム UI**: チャット履歴、ストリーミングチャットウィンドウ、ドキュメント添付パネルを備えたモダンなインターフェース。
+- **利用制限とクレジット**: AI Gateway を介した統合的な利用状況モニタリング。クレジット残高やストレージ制限を管理します。
 
-## Technical Stack
+## 技術スタック
 
-- **App Framework**: [Next.js 16](https://nextjs.org/) (App Router) with [React 19](https://react.dev/)
-- **AI & RAG Framework**: [Vercel AI SDK](https://sdk.vercel.ai/), [LangChain](https://js.langchain.com/)
-- **Database & ORM**: [Prisma 7](https://www.prisma.io/) with [PostgreSQL](https://www.postgresql.org/) and [`pgvector`](https://github.com/pgvector/pgvector)
-- **UI Components**: [ShadcnUI](https://ui.shadcn.com/), and [Vercel AI Elements](https://ai-sdk.dev/elements)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Storage**: [Vercel Blob](https://vercel.com/docs/storage/vercel-blob)
-- **Infrastructure**: [Vercel](https://vercel.com/) and [AI Gateway](https://vercel.com/ai-gateway/)
+- **アプリケーションフレームワーク**: [Next.js](https://nextjs.org/) (App Router) / [React](https://react.dev/)
+- **AI & RAG フレームワーク**: [Vercel AI SDK](https://sdk.vercel.ai/), [LangChain](https://js.langchain.com/)
+- **データベース & ORM**: [Prisma](https://www.prisma.io/) (PostgreSQL + [`pgvector`](https://github.com/pgvector/pgvector))
+- **UI コンポーネント**: [ShadcnUI](https://ui.shadcn.com/), [Vercel AI Elements](https://ai-sdk.dev/elements)
+- **スタイリング**: [Tailwind CSS](https://tailwindcss.com/)
+- **ストレージ**: [Vercel Blob](https://vercel.com/docs/storage/vercel-blob)
+- **インフラ**: [Vercel](https://vercel.com/) / [AI Gateway](https://vercel.com/ai-gateway/)
 
-## Local Setup Instructions
+## ローカルセットアップ
 
-### 1. Prerequisites
+### 1. 前提条件
 
-- **Node.js 20+** and **pnpm** installed.
-- **PostgreSQL** with the `pgvector` extension enabled.
-- An **AI Gateway** API key and base URL (configured for Google Gemini services).
+- **Node.js 20 以上** および **pnpm** がインストールされていること。
+- **PostgreSQL** (`pgvector` 拡張機能が有効であること)。
+- **AI Gateway** の API キーとベース URL（Google Gemini サービス用に設定されていること）。
 
-### 2. Clone and Install
+### 2. クローンとインストール
 
 ```bash
 git clone <repository-url>
@@ -36,56 +36,56 @@ cd next-rag-demo
 pnpm install
 ```
 
-### 3. Environment Variables
+### 3. 環境変数の設定
 
-Create a `.env.local` file in the root directory and add the following:
+ルートディレクトリに `.env.local` ファイルを作成し、以下の内容を追加します：
 
 ```env
 DATABASE_URL="postgresql://user:password@host:5432/database?sslmode=require"
-AI_GATEWAY_API_KEY="your-gateway-api-key"
+AI_GATEWAY_API_KEY="あなたのAPIキー"
 AI_GATEWAY_BASE_URL="https://ai-gateway.vercel.sh/v1"
-BLOB_READ_WRITE_TOKEN="your-vercel-blob-token"
+BLOB_READ_WRITE_TOKEN="あなたのVercel Blobトークン"
 ```
 
-> **Note**: To get the `BLOB_READ_WRITE_TOKEN`, you need to create a project on [Vercel](https://vercel.com) and set up [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) in the Storage tab. For local development, you can use the Vercel CLI to link your project and pull the environment variables (`vercel link && vercel env pull`).
+> **注**: `BLOB_READ_WRITE_TOKEN` を取得するには、[Vercel](https://vercel.com) でプロジェクトを作成し、Storage タブで [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) を設定する必要があります。ローカル開発では、Vercel CLI を使用してプロジェクトをリンクし、環境変数を取得することも可能です (`vercel link && vercel env pull`)。
 
-### 4. Database Initialization
+### 4. データベースの初期化
 
-This project uses Prisma 7. Initialize your database schema and generate the client:
+このプロジェクトでは Prisma 7 を使用しています。データベーススキーマを初期化し、クライアントを生成します：
 
 ```bash
 npx prisma migrate dev
 ```
 
-### 5. Run Development Server
+### 5. 開発サーバーの起動
 
 ```bash
 pnpm dev
 ```
 
-Visit `http://localhost:3000` to see the application in action.
+`http://localhost:3000` にアクセスして、動作を確認してください。
 
-## Vercel Deployment Instructions
+## Vercel でのデプロイ
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fikudev%2Fnext-rag-demo)
 
-### 1. Simple Deployment
+### 1. 簡単なデプロイ
 
-The easiest way to deploy this project is to click the **Deploy with Vercel** button above. It will:
-- Clone this repository to your GitHub account.
-- Create a new project on Vercel.
-- Prompt you to configure the necessary environment variables.
+上の **Deploy with Vercel** ボタンをクリックするのが最も簡単な方法です。以下の操作が自動的に行われます：
+- このリポジトリをご自身の GitHub アカウントにクローン。
+- Vercel 上に新しいプロジェクトを作成。
+- 必要な環境変数の設定プロンプトを表示。
 
-### 2. Configure Environment Variables
+### 2. 環境変数の設定
 
-Add all variables from your `.env.local` to the Vercel project settings.
+`.env.local` にあるすべての変数を Vercel プロジェクトの設定に追加してください。
 
-### 3. Setup Managed Services
+### 3. マネージドサービスの設定
 
-- **Database**: Use **Neon** or any Managed Postgres service that supports `pgvector`.
-- **Storage**: Enable **Vercel Blob** for the project to handle file uploads.
-- **Build Step**: The build command is pre-configured in `package.json` to handle migrations: `prisma migrate deploy && next build`.
+- **データベース**: **Neon** など、`pgvector` をサポートするマネージド Postgres サービスを使用してください。
+- **ストレージ**: ファイルアップロード機能を有効にするため、プロジェクトで **Vercel Blob** を有効にしてください。
+- **ビルドステップ**: `package.json` にてビルドコマンドが事前に設定されています (`prisma migrate deploy && next build`)。
 
-### 4. Deploy
+### 4. デプロイ
 
-Once configured, trigger a deployment. Vercel will automatically handle the Prisma generation and migration during the build process.
+設定完了後、デプロイを実行してください。ビルドプロセス中に Prisma の生成とマイグレーションが自動的に処理されます。

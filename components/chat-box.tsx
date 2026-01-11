@@ -182,7 +182,7 @@ export function ChatBox({
 
     // Single file upload size limit: 10MB
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size exceeds 10MB limit');
+      toast.error('ファイルサイズが10MBの制限を超えています');
       e.target.value = '';
       return;
     }
@@ -196,11 +196,13 @@ export function ChatBox({
       await uploadDocument(formData);
       router.refresh();
       window.dispatchEvent(new CustomEvent('knowledge-base-updated'));
-      toast.success('Document uploaded successfully');
+      toast.success('ドキュメントをアップロードしました');
     } catch (error) {
-      console.error('Failed to upload document:', error);
+      console.error('ドキュメントのアップロードに失敗しました:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to upload document',
+        error instanceof Error
+          ? error.message
+          : 'ドキュメントのアップロードに失敗しました',
       );
     } finally {
       setIsUploading(false);
@@ -213,9 +215,11 @@ export function ChatBox({
       <div className='flex items-center justify-center h-full bg-muted/5'>
         <div className='text-center'>
           <MessageSquare className='w-16 h-16 mx-auto text-muted-foreground mb-4 font-thin' />
-          <h2 className='text-xl font-semibold mb-2'>No Chat Selected</h2>
+          <h2 className='text-xl font-semibold mb-2'>
+            チャットが選択されていません
+          </h2>
           <p className='text-muted-foreground'>
-            Select a chat from the sidebar or create a new one to get started
+            サイドバーからチャットを選択するか、新しく作成して始めましょう
           </p>
         </div>
       </div>
@@ -279,7 +283,7 @@ export function ChatBox({
                 className='font-semibold text-sm sm:text-base truncate cursor-pointer hover:text-primary transition-colors'
                 onClick={() => setIsEditingTitle(true)}
               >
-                {currentTitle || 'New Conversation'}
+                {currentTitle || '新しいチャット'}
               </h1>
               <Button
                 size='icon'
@@ -308,7 +312,7 @@ export function ChatBox({
               )}
             />
             <span className='hidden sm:inline'>
-              {isRegenerating ? 'Generating...' : 'Regenerate Title'}
+              {isRegenerating ? '生成中...' : 'タイトルを再生成'}
             </span>
           </Button>
           <Button
@@ -316,7 +320,7 @@ export function ChatBox({
             variant='ghost'
             className='h-8 w-8 text-muted-foreground hover:text-destructive shrink-0 hidden sm:flex'
             onClick={() => router.push('/')}
-            title='Close chat'
+            title='チャットを閉じる'
           >
             <X className='w-4 h-4' />
           </Button>
@@ -343,9 +347,11 @@ export function ChatBox({
                   <Bot className='w-8 h-8 opacity-50' />
                 </div>
                 <p className='text-lg font-medium text-foreground/80 mb-1'>
-                  New Conversation
+                  新しい対話
                 </p>
-                <p className='text-sm opacity-70'>How can I help you today?</p>
+                <p className='text-sm opacity-70'>
+                  今日はどのようにお手伝いしましょうか？
+                </p>
               </div>
             )}
             {messages.map((message: UIMessage) => (
@@ -380,8 +386,8 @@ export function ChatBox({
               <PromptInputTextarea
                 placeholder={
                   isCreditLimitReached
-                    ? 'Usage limit reached...'
-                    : 'Type your message...'
+                    ? '利用制限に達しました...'
+                    : 'メッセージを入力...'
                 }
                 onChange={(e) => setInput(e.target.value)}
                 value={input}
@@ -423,8 +429,7 @@ export function ChatBox({
                   </TooltipTrigger>
                   {isLimitReached && (
                     <TooltipContent side='top'>
-                      Usage limit reached so chatting and file uploading are
-                      disabled.
+                      利用制限に達したため、チャット機能とファイルのアップロードが無効になっています。
                     </TooltipContent>
                   )}
                 </Tooltip>
@@ -445,8 +450,7 @@ export function ChatBox({
                 </TooltipTrigger>
                 {isCreditLimitReached && (
                   <TooltipContent side='top'>
-                    Usage limit reached so chatting and file uploading are
-                    disabled.
+                    利用制限に達したため、チャット機能とファイルのアップロードが無効になっています。
                   </TooltipContent>
                 )}
               </Tooltip>

@@ -20,6 +20,7 @@ import {
 import { toast } from 'sonner';
 import { Upload, File, Trash2, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { ja } from 'date-fns/locale';
 import {
   getDocuments,
   uploadDocument,
@@ -76,8 +77,8 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
         setChatDocuments([]);
       }
     } catch (error) {
-      console.error('Failed to fetch documents:', error);
-      toast.error('Failed to fetch documents');
+      console.error('ドキュメントの取得に失敗しました:', error);
+      toast.error('ドキュメントの読み込みに失敗しました');
     }
   }, [chatId]);
 
@@ -103,7 +104,7 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
 
     // Single file upload size limit: 10MB
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size exceeds 10MB limit');
+      toast.error('ファイルサイズが10MBの制限を超えています');
       e.target.value = '';
       return;
     }
@@ -116,11 +117,13 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
       await uploadDocument(formData);
       await fetchDocuments();
       window.dispatchEvent(new CustomEvent('knowledge-base-updated'));
-      toast.success('File uploaded successfully');
+      toast.success('ファイルをアップロードしました');
     } catch (error) {
-      console.error('Failed to upload file:', error);
+      console.error('ファイルのアップロードに失敗しました:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to upload file',
+        error instanceof Error
+          ? error.message
+          : 'ファイルのアップロードに失敗しました',
       );
     } finally {
       setUploading(false);
@@ -133,39 +136,39 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
       await deleteDocument(docId);
       await fetchDocuments();
       window.dispatchEvent(new CustomEvent('knowledge-base-updated'));
-      toast.success('Document deleted from global library');
+      toast.success('ナレッジベースからドキュメントを削除しました');
     } catch (error) {
-      console.error('Failed to delete document:', error);
-      toast.error('Failed to delete document');
+      console.error('ドキュメントの削除に失敗しました:', error);
+      toast.error('ドキュメントの削除に失敗しました');
     }
   };
 
   const toggleDocumentInChat = async (docId: string, isInChat: boolean) => {
     if (!chatId) {
-      toast.error('Select a chat first');
+      toast.error('最初にチャットを選択してください');
       return;
     }
 
     try {
       if (isInChat) {
         await removeDocumentFromChat(docId, chatId);
-        toast.success('Removed from chat');
+        toast.success('チャットから解除しました');
       } else {
         await addDocumentToChat(docId, chatId);
-        toast.success('Added to chat');
+        toast.success('チャットに追加しました');
       }
       await fetchDocuments();
       window.dispatchEvent(new CustomEvent('knowledge-base-updated'));
     } catch (error) {
-      console.error('Failed to update document status:', error);
-      toast.error('Failed to update document status');
+      console.error('ドキュメントの状態更新に失敗しました:', error);
+      toast.error('ドキュメントの状態更新に失敗しました');
     }
   };
 
   return (
     <div className='flex flex-col h-full border-l bg-muted/10'>
       <div className='p-4 border-b flex items-center justify-between'>
-        <h2 className='font-semibold text-sm'>Knowledge Base</h2>
+        <h2 className='font-semibold text-sm'>ナレッジベース</h2>
         <Tooltip>
           <TooltipTrigger asChild>
             <label>
@@ -198,14 +201,14 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
                   ) : (
                     <Upload className='w-3 h-3 mr-1' />
                   )}
-                  Upload
+                  アップロード
                 </span>
               </Button>
             </label>
           </TooltipTrigger>
           {isLimitReached && (
             <TooltipContent side='bottom'>
-              Usage limit reached so chatting and file uploading are disabled.
+              利用制限に達したため、チャット機能とファイルのアップロードが無効になっています。
             </TooltipContent>
           )}
         </Tooltip>
@@ -217,7 +220,7 @@ export function KnowledgeBase({ refreshTrigger }: KnowledgeBaseProps) {
             <div className='text-center py-12'>
               <File className='w-8 h-8 text-muted-foreground/20 mx-auto mb-2' />
               <p className='text-xs text-muted-foreground'>
-                No documents in knowledge base
+                ドキュメントがありません
               </p>
             </div>
           ) : (
@@ -295,26 +298,28 @@ function DocumentItem({
                     variant='ghost'
                     size='icon'
                     className='h-6 w-6 text-muted-foreground hover:text-destructive'
-                    title='Delete from global library'
+                    title='ナレッジベースから削除'
                   >
                     <Trash2 className='w-3 h-3' />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      削除してもよろしいですか？
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will PERMANENTLY delete &quot;{document.filename}
-                      &quot; and all its embeddings.
+                      「{document.filename}
+                      」とそのすべてのデータが完全に削除されます。
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={onDelete}
                       className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
                     >
-                      Delete
+                      削除する
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -327,11 +332,12 @@ function DocumentItem({
               variant='secondary'
               className='text-[10px] h-4 px-1 font-normal opacity-70'
             >
-              {document._count?.embeddings || 0} chunks
+              {document._count?.embeddings || 0} チャンク
             </Badge>
             <span className='text-[10px] text-muted-foreground opacity-70'>
               {formatDistanceToNow(new Date(document.createdAt), {
                 addSuffix: true,
+                locale: ja,
               })}
             </span>
           </div>

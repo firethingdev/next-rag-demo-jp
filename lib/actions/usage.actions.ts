@@ -30,13 +30,13 @@ export async function getUsageState(): Promise<UsageState> {
         credits = parseFloat(data.balance);
       } else {
         console.error(
-          'Failed to fetch credits from AI Gateway:',
+          'AI Gatewayからのクレジット取得に失敗しました:',
           response.statusText,
         );
       }
     }
   } catch (error) {
-    console.error('Error fetching credits:', error);
+    console.error('クレジット取得エラー:', error);
   }
 
   const totalBytes = await getTotalFileSize();
