@@ -31,8 +31,8 @@ Next.js、LangChain、Prisma を使用して構築された、ハイパフォー
 ### 2. クローンとインストール
 
 ```bash
-git clone <repository-url>
-cd next-rag-demo
+git clone https://github.com/firethingdev/next-rag-demo-jp.git
+cd next-rag-demo-jp
 pnpm install
 ```
 
@@ -67,7 +67,7 @@ pnpm dev
 
 ## Vercel でのデプロイ
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fikudev%2Fnext-rag-demo)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffirethingdev%2Fnext-rag-demo-jp)
 
 ### 1. 簡単なデプロイ
 
